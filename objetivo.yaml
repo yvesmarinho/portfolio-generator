@@ -1,317 +1,322 @@
-# objetivo.yaml — Universal Spec-Driven Design Prerequisites Manifest
-# =============================================================================
-# Propósito:
-# - Artefato raiz (arquivo único) que guia constitution/specify/plan.
-# - Fornecer contexto, restrições, pré-requisitos e decisões iniciais.
-# - Incluir perguntas orientadoras (gates) para reduzir ambiguidade.
-#
-# Regras de uso:
-# - Este arquivo deve ser versionado.
-# - Campos "unknown" devem ser tratados como dívida de especificação.
-# - Segredos/credenciais NÃO devem existir aqui (somente referências).
-schema:
-  name: "objective-manifest"
-  version: "1.0"
-  last_updated: "2026-03-26"
-  authors:
-    - "yvesmarinho"
+---
+# Portfolio Generator — Objetivo do Projeto (v2.0)
+# Arquivo oficial para workflow SpecKit
+# Baseado em: objetivo-init.yaml + PROJECT_SPECIFICATION.md
+# Data: 2026-05-18
+# Status: ✅ Pronto para SpecKit
 
-# -----------------------------------------------------------------------------
-# 1) Identidade do projeto
-# -----------------------------------------------------------------------------
-project:
-  name: "portfolio-generator"
-  codename: ""
-  domain: "agnostic"   # ex: software, infra, hardware, eletricidade, data, research
-  summary: ""
-  problem_statement: ""
-  success_statement: "CHANGE_ME (como saberemos que deu certo?)"
+prompt:
+  role: user
+  content:
+    description: |
+      Criar ferramenta CLI de análise automatizada para catalogar projetos em
+      /home/yves_marinho/Documentos/DevOps/, gerando portfólio profissional em JSON
+      estruturado com resumos, métricas de código, tecnologias e metadados Git.
+      
+      Propósito dual:
+      1. Gerador de portfólio profissional (primário)
+      2. Validação do Enterprise Template (secundário)
+      
+      Solução de automação reutilizável para uso profissional.
 
-stakeholders:
-  owner:
-    team_or_person: "portfolio-generator team"
-    contact: ""
-  users_personas:
-    - name: "PrimaryUser"
-      description: "Quem usa e como usa."
-  reviewers:
-    - "tech_lead"
-    - "security"
-    - "ops"
-  decision_makers:
-    - "portfolio-generator owner"
+    specification:
+      project_name: "portfolio-generator"
+      
+      languages:
+        primary: "Python 3.12+"
+        alternatives: "Aceita propostas se influenciar qualidade da entrega"
+      
+      docstyle: "Google Style (Python)"
+      
+      ai_strategy:
+        approach: "Local-first (sem IA no MVP)"
+        optional: "Claude 3.5 Sonnet via API para resumos quando README ausente"
+        decision: "Implementar análise local primeiro, IA incremental depois"
+      
+      libraries:
+        essenciais:
+          - pandas==2.2.0
+          - pathlib  # built-in
+          - pyyaml==6.0.1
+          - tomli==2.0.1
+          - gitpython==3.1.43
+        analise_codigo:
+          - tree-sitter==0.22.0
+          - pygments==2.17.2
+          - chardet==5.2.0
+        cli_ux:
+          - click==8.1.7
+          - loguru==0.7.2
+          - rich==13.7.0
+        ia_opcional:
+          - anthropic==0.23.1
+          - tiktoken==0.6.0
+        desenvolvimento:
+          - ruff  # linting e formatting
+          - pytest  # testes
+          - pytest-cov  # cobertura
+          - mypy  # type checking
+      
+      data_volume: "1-10 GB (processamento: 5-15 minutos esperados)"
+      
+      workflow:
+        tipo: "SpecKit v2.0"
+        etapas:
+          - "specify: Gerar spec.md"
+          - "plan: Gerar plan.md"
+          - "tasks: Gerar tasks.md"
+          - "validate: Quality gates"
+          - "implement: Execução das tarefas"
+      
+      out_scope:
+        - "Processamento de arquivos fora de /home/yves_marinho/Documentos/DevOps/"
+        - "Análise profunda de código (AST completo) — apenas metadados no MVP"
+        - "Interface gráfica (GUI) — apenas CLI no MVP"
+        - "Publicação automática em plataformas externas"
 
-# -----------------------------------------------------------------------------
-# 2) Escopo e fronteiras (para evitar creep)
-# -----------------------------------------------------------------------------
-scope:
-  in_scope:
-    - "portfolio-generator owner"
-  out_of_scope:
-    - "portfolio-generator owner"
-  assumptions:
-    - "portfolio-generator owner"
-  constraints:
-    # Triângulo de ferro: tempo/custo/escopo/qualidade
-    timeline:
-      target_date: "unknown"
-      hard_deadline: false
-    budget:
-      max_budget: "unknown"
-      currency: "USD"
-    risk_tolerance: "medium"  # low|medium|high
-    change_policy:
-      mode: "brownfield"      # greenfield|brownfield
-      principles:
-        - "minimize_disruption"
-        - "backward_compatible_when_possible"
-      rebuild_allowed: "unknown"  # true|false|unknown
+    architecture:
+      design_patterns:
+        - "SOLID em todos os módulos"
+        - "Factory pattern para criação de extractors"
+        - "Strategy pattern para diferentes tipos de análise"
+        - "Builder pattern para construção do JSON"
+      
+      module_structure:
+        src/core:
+          - scanner.py: "Varredura recursiva de diretórios"
+          - extractor.py: "Extração de metadados estruturados"
+          - analyzer.py: "Análise de README e código"
+          - generator.py: "Geração de JSON/YAML/Markdown"
+        src/api:
+          - cli.py: "Interface CLI com click"
+        src/shared:
+          - logging.py: "Configuração loguru"
+          - validators.py: "Validação de entrada"
+          - config.py: "Gerenciamento de configurações"
+      
+      constraints:
+        - "Arquivos/classes máximo 300 linhas"
+        - "Separação clara de responsabilidades"
+        - "Sem acoplamento forte entre módulos"
 
-# -----------------------------------------------------------------------------
-# 3) Estado atual (brownfield context) e inventário de base existente
-# -----------------------------------------------------------------------------
-current_state:
-  description: "unknown"
-  existing_assets:
-    repos:
-      - url: ""
-        notes: ""
-    systems_services:
-      - name: ""
-        owner: ""
-        notes: ""
-    hardware_components:
-      - name: ""
-        model: ""
-        notes: ""
-    facilities_electrical:
-      - name: ""
-        standards: ""
-        notes: ""
-  known_pain_points:
-    - "unknown"
-  known_constraints:
-    - "unknown"
+    rules:
+      projeto_especificas:
+        - "Aplicar SOLID e design patterns (Factory, Strategy, Builder)"
+        - "Programação modular com responsabilidades bem definidas"
+        - "Utilizar click para CLI interativo"
+        - "Logs detalhados com loguru mostrando fluxo do programa"
+        - "NUNCA processar arquivos fora de /home/yves_marinho/Documentos/DevOps/"
+        - "Validar todas as entradas de usuário"
+        - "Type hints obrigatórios em todas funções/classes"
+        - "Dados sensíveis em .secrets/, nunca hardcoded"
+        - "Idempotência: múltiplas execuções = mesmo resultado"
+        - "Performance: respeitar recursos da máquina, evitar travamentos"
+      
+      qualidade_codigo:
+        linting: "ruff check obrigatório antes de commit"
+        formatting: "ruff format"
+        type_checking: "mypy com strict mode"
+        cobertura_testes: "Mínimo 90%"
+        documentacao: "Google Style docstrings em todas funções/classes"
+        headers: "Detalhes em cada arquivo de código"
+      
+      seguranca:
+        - "Validação de entrada em todas funções públicas"
+        - "Sanitização de caminhos de arquivo"
+        - "Gestão segura de credenciais em .secrets/"
+        - "Proteção contra path traversal"
+        - "Sem execução de código não confiável"
+      
+      gerais_template:
+        - "Arquivos na raiz: apenas os extremamente necessários"
+        - "Códigos seguem padrões de qualidade e estilo"
+        - "Workflow guiado por prompts para GitHub Copilot"
+        - "Configuração MCP gerada automaticamente"
+        - "Sistema de versionamento rastreia todas mudanças"
+        - "Melhores práticas de desenvolvimento: testes, docs, manutenção"
 
-# -----------------------------------------------------------------------------
-# 4) Pré-requisitos e dependências (HARD vs SOFT)
-# -----------------------------------------------------------------------------
-prerequisites:
-  hard:
-    - id: "access_or_permissions"
-      description: "Acessos/permissões necessários para começar."
-      status: "unknown" # ready|blocked|unknown
-      evidence: ""      # link/commit/ticket
-    - id: "tools_environment"
-      description: "Ferramentas/ambiente mínimo (SO, compilador, runtime, etc.)."
-      status: "unknown"
-      evidence: ""
-  soft:
-    - id: "nice_to_have_tooling"
-      description: "Ferramentas recomendadas."
-      status: "unknown"
-      evidence: ""
+    folder_structure:
+      - ".github: Workflows CI/CD, agents, prompts"
+      - ".git-hooks: Pre-commit hooks personalizados"
+      - ".memory: Contexto para agentes MCP"
+      - ".secrets: Chaves e tokens (não versionado)"
+      - ".session-index: Índice de sessões SQLite"
+      - ".session-time: Rastreamento de tempo"
+      - ".specify: Configurações SpecKit"
+      - ".venv: Ambiente virtual Python (não versionado)"
+      - ".vscode: Configurações VS Code e MCP"
+      - "docs: Documentação técnica e de sessão"
+      - "logs: Logs de execução e histórico"
+      - "schemas: JSON Schema do portfólio"
+      - "scripts: Automação (session, memory, git)"
+      - "src: Código-fonte (core, api, shared)"
+      - "tests: Testes automatizados (unit, integration)"
+      - "tmp: Arquivos temporários (não versionados)"
 
-dependencies:
-  internal:
-    - name: "unknown"
-      type: "service|team|repo|hardware|facility|process"
-      criticality: "unknown" # low|medium|high|unknown
-      notes: ""
-  external:
-    - name: "unknown"
-      type: "vendor|standard|library|api|regulation"
-      criticality: "unknown"
-      notes: ""
+    features_to_implement:
+      mvp:
+        - name: "Scanner de Diretórios"
+          description: "Varredura recursiva com filtros, .gitignore, progress bar"
+          priority: "P0"
+        
+        - name: "Extrator de Metadados"
+          description: "Linguagens, deps, stats, Git info via gitpython"
+          priority: "P0"
+        
+        - name: "Analisador de README"
+          description: "Parser Markdown, extração de seções, fallback para docstrings"
+          priority: "P0"
+        
+        - name: "Gerador de JSON"
+          description: "Schema validation, formatos JSON/YAML/Markdown"
+          priority: "P0"
+        
+        - name: "CLI Interativo"
+          description: "Click, progress bars (rich), verbose/quiet, dry-run"
+          priority: "P0"
+      
+      pos_mvp:
+        - name: "Análise de qualidade de código"
+          description: "Métricas complexidade, code smells"
+          priority: "P1"
+        
+        - name: "Resumos com IA (opcional)"
+          description: "Claude para gerar descrições quando README ausente"
+          priority: "P2"
+        
+        - name: "Exportação para formatos adicionais"
+          description: "HTML estático, PDF"
+          priority: "P2"
 
-# -----------------------------------------------------------------------------
-# 5) Requisitos funcionais e não-funcionais (agnóstico)
-# -----------------------------------------------------------------------------
-requirements:
-  functional:
-    - "unknown"
-  non_functional:
-    security:
-      classification: "unknown"     # public|internal|confidential|restricted|unknown
-      secrets_policy: "no_secrets_in_repo"
-      threat_model_required: true
-      authn_authz: "unknown"        # none|basic|oauth|mtls|physical_access|unknown
-      audit_logging_required: "unknown"
-    reliability:
-      availability_target: "unknown"  # ex: 99.9%
-      rpo: "unknown"
-      rto: "unknown"
-      backup_required: "unknown"
-    performance:
-      latency_p95: "unknown"
-      throughput: "unknown"
-      resource_limits: "unknown"
-    maintainability:
-      documentation_required: true
-      test_coverage_target: "unknown"
-      coding_standards: "unknown"
-    compliance:
-      regulations:
-        - "unknown"  # ex: LGPD, SOC2, ISO27001, IEC, ABNT, etc.
-    usability:
-      accessibility: "unknown"
-    portability:
-      platforms:
-        - "unknown"  # linux, windows, embedded, mobile, etc.
+    expected_outcome:
+      criterios_sucesso:
+        - "Analisar 50+ projetos e gerar resumo com informações de qualidade"
+        - "JSON contendo: nome, tipo, resumo rico, metadados completos"
+        - "Tempo de processamento < 5 minutos para 1-10 GB"
+        - "Execução respeitando recursos da máquina (sem travamentos)"
+        - "Validação contra portfolio-schema-v1.json com 100% conformidade"
+      
+      entregaveis:
+        - "CLI funcional: portfolio-gen com subcomandos"
+        - "Documentação completa em docs/"
+        - "Suite de testes com 90%+ cobertura"
+        - "JSON Schema validado"
+        - "Relatório de validação do Enterprise Template"
+        - "CI/CD configurado (GitHub Actions)"
+      
+      caso_uso_demo:
+        target: "/home/yves_marinho/Documentos/DevOps/Vya-Jobs/enterprise-python-snippets"
+        comando: "portfolio-gen scan /caminho/acima --format json -o portfolio.json"
+        resultado_esperado: "JSON válido com análise de todos projetos Python encontrados"
 
-# -----------------------------------------------------------------------------
-# 6) Interface e integrações (agnóstico: API, UI, CLI, hardware IO)
-# -----------------------------------------------------------------------------
-interfaces:
-  user_interface:
-    type: "unknown" # none|web|mobile|desktop|hmi|unknown
-    notes: ""
-  programmatic_interface:
-    type: "unknown" # none|rest|grpc|mqtt|modbus|canbus|serial|unknown
-    versioning: "unknown"
-    backwards_compatibility_required: "unknown"
-  data_interfaces:
-    inputs:
-      - name: "unknown"
-        format: "unknown" # json,yaml,csv,sql,binary,etc.
-        notes: ""
-    outputs:
-      - name: "unknown"
-        format: "unknown"
-        notes: ""
-  integrations:
-    - name: "unknown"
-      direction: "inbound|outbound|bidirectional|unknown"
-      protocol: "unknown"
-      auth: "unknown"
-      notes: ""
+    infrastructure:
+      ambiente_desenvolvimento:
+        sistema_operacional: "Linux Mint"
+        python_version: "3.12+"
+        gerenciador_pacotes: "uv (PEP 723 runner)"
+        ide_editor: "VS Code + Extensions (Python, Ruff, GitHub Copilot)"
+        git_workflow: "Feature branches + commits via arquivo"
+      
+      dependencias_externas:
+        acesso_internet: "Opcional (apenas para IA)"
+        banco_dados: "N/A"
+        cache_storage: "Disco local apenas"
+        message_queue: "N/A"
+      
+      deploy_distribuicao:
+        tipo: "Script local"
+        execucao: "uv run portfolio-gen [comando]"
+        publicacao: "Repositório GitHub (sem PyPI por enquanto)"
+      
+      configuracao_secrets:
+        localizacao: ".secrets/"
+        gitignore: "✅ Configurado"
+        formato: "JSON ou .env"
+        exemplo: ".secrets/anthropic.json (se usar IA)"
+      
+      monitoramento_logs:
+        logging:
+          framework: "loguru"
+          niveis: "DEBUG, INFO, WARNING, ERROR"
+          formato: "Timestamp, nível, módulo, mensagem"
+          destino: "Console + logs/portfolio-gen.log"
+        metricas: "N/A (não necessário no MVP)"
+        tracing: "N/A"
+        alertas: "N/A"
 
-# -----------------------------------------------------------------------------
-# 7) Dados (opcional, agnóstico)
-# -----------------------------------------------------------------------------
-data:
-  model_required: "unknown"
-  data_sources:
-    - name: "unknown"
-      type: "db|files|api|sensors|manual|unknown"
-      quality_expectations: "unknown"
-  data_retention:
-    retention_period: "unknown"
-    deletion_policy: "unknown"
+    pending_tasks:
+      especkit_workflow:
+        - task: "SPEC-01: Executar speckit.specify"
+          priority: "P0"
+          description: "Gerar spec.md a partir deste objetivo.yaml"
+        
+        - task: "SPEC-02: Executar speckit.plan"
+          priority: "P0"
+          description: "Gerar plan.md com design detalhado"
+          depends_on: "SPEC-01"
+        
+        - task: "SPEC-03: Executar speckit.tasks"
+          priority: "P0"
+          description: "Gerar tasks.md com tarefas implementação"
+          depends_on: "SPEC-02"
+        
+        - task: "SPEC-04: Executar speckit.validate"
+          priority: "P1"
+          description: "Validar quality gates antes de implementação"
+          depends_on: "SPEC-03"
+      
+      implementacao_mvp:
+        - task: "DEV-01: Implementar Scanner"
+          priority: "P0"
+          depends_on: "SPEC-04"
+        
+        - task: "DEV-02: Implementar Extractor"
+          priority: "P0"
+          depends_on: "DEV-01"
+        
+        - task: "DEV-03: Implementar Analyzer"
+          priority: "P0"
+          depends_on: "DEV-02"
+        
+        - task: "DEV-04: Implementar Generator"
+          priority: "P0"
+          depends_on: "DEV-03"
+        
+        - task: "DEV-05: Implementar CLI"
+          priority: "P0"
+          depends_on: "DEV-04"
+      
+      qualidade:
+        - task: "TEST-01: Criar testes unitários (≥90%)"
+          priority: "P0"
+        
+        - task: "TEST-02: Teste integração com caso real"
+          priority: "P1"
+        
+        - task: "DOC-01: Documentar APIs"
+          priority: "P1"
+        
+        - task: "INFRA-01: Criar pyproject.toml"
+          priority: "P0"
 
-# -----------------------------------------------------------------------------
-# 8) Entregáveis (documentos/artefatos) — não é tarefa, é “contrato de saída”
-# -----------------------------------------------------------------------------
-deliverables:
-  required:
-    - "constitution"
-    - "specification"
-    - "plan"
-    - "risk_register"
-    - "readme_or_runbook"
-  optional:
-    - "architecture_diagrams"
-    - "threat_model"
-    - "test_plan"
-    - "migration_plan"
+    profile:
+      - role: "python-developer"
+        skill_level: "advanced"
+        description: "Desenvolvedor Python experiente com foco em CLI tools e automação"
+      
+      - role: "data-analyst"
+        skill_level: "intermediate"
+        description: "Análise de metadados e geração de relatórios estruturados"
+      
+      - role: "devops-engineer"
+        skill_level: "intermediate"
+        description: "CI/CD, scripts de automação, boas práticas de desenvolvimento"
 
-# -----------------------------------------------------------------------------
-# 9) Regras de implementação (variável por projeto)
-# -----------------------------------------------------------------------------
-implementation_rules:
-  error_handling_policy:
-    applies: "unknown"  # always|by_module|by_layer|unknown
-    default_behavior: "unknown"
-    notes: >
-      Exemplo: "Em libs internas retornar False; em CLI usar exit codes;
-      em API levantar exceptions e mapear para HTTP codes."
-  parameter_validation:
-    required: true
-    strict_typing: "unknown" # true|false|unknown
-  documentation:
-    required: true
-    style: "reStructuredText" # pode ser alterado por projeto
-    doctest_required: "unknown"
-  testing:
-    required: true
-    strategy: "unknown" # unit|integration|e2e|hardware_in_loop|unknown
-  coding_patterns:
-    - "unknown" # ex: factory, repository, observer, strategy, singleton
-
-# -----------------------------------------------------------------------------
-# 10) Gates: perguntas orientadoras (o motor do Spec-Driven Design)
-# -----------------------------------------------------------------------------
-gates:
-  mode: "blocking" # blocking|non_blocking
-  questions:
-    # A) Problema e objetivos
-    - id: "goal_001"
-      category: "goals"
-      question: "Qual é o resultado mensurável (métricas) que define sucesso?"
-      expected_answer_type: "text"
-      required: true
-      current_answer: "unknown"
-    - id: "goal_002"
-      category: "scope"
-      question: "O que explicitamente NÃO será feito (out-of-scope) nesta fase?"
-      expected_answer_type: "list"
-      required: true
-      current_answer: ["unknown"]
-
-    # B) Contexto / brownfield
-    - id: "ctx_001"
-      category: "current_state"
-      question: "Quais ativos existentes NÃO podem ser quebrados (compatibilidade / contratos)?"
-      expected_answer_type: "list"
-      required: true
-      current_answer: ["unknown"]
-    - id: "ctx_002"
-      category: "change_policy"
-      question: "Rebuild do core é permitido? Se sim, em quais partes e sob quais condições?"
-      expected_answer_type: "text"
-      required: true
-      current_answer: "unknown"
-
-    # C) Pré-requisitos e dependências
-    - id: "pre_001"
-      category: "prerequisites"
-      question: "Quais acessos/permissões/recursos são necessários para iniciar (e quem aprova)?"
-      expected_answer_type: "text"
-      required: true
-      current_answer: "unknown"
-    - id: "dep_001"
-      category: "dependencies"
-      question: "Quais dependências internas/externas são críticas e quais são os riscos de atraso?"
-      expected_answer_type: "text"
-      required: true
-      current_answer: "unknown"
-
-    # D) Qualidade, segurança, compliance
-    - id: "sec_001"
-      category: "security"
-      question: "Qual a classificação dos dados e quais requisitos mínimos de segurança (auth, auditoria, criptografia)?"
-      expected_answer_type: "text"
-      required: true
-      current_answer: "unknown"
-    - id: "nfr_001"
-      category: "reliability"
-      question: "Qual disponibilidade/continuidade é necessária (SLA/SLO, RPO/RTO)?"
-      expected_answer_type: "text"
-      required: false
-      current_answer: "unknown"
-
-    # E) Interfaces (API/UI/Hardware)
-    - id: "if_001"
-      category: "interfaces"
-      question: "Quais interfaces existem/serão expostas (UI, CLI, API, serial, MQTT etc.) e seus contratos?"
-      expected_answer_type: "text"
-      required: true
-      current_answer: "unknown"
-
-    # F) Entregáveis
-    - id: "deliv_001"
-      category: "deliverables"
-      question: "Quais documentos/artefatos são obrigatórios no final (constitution/spec/plan/runbook)?"
-      expected_answer_type: "list"
-      required: true
-      current_answer: ["constitution", "specification", "plan", "risk_register", "readme_or_runbook"]
+metadata:
+  version: "2.0"
+  created_at: "2026-05-18T17:31:13Z"
+  updated_at: "2026-05-18T21:00:00Z"
+  repository: "https://github.com/yvesmarinho/portfolio-generator"
+  license: "MIT"
+  author: "Yves Marinho"
+  status: "ready-for-speckit"
