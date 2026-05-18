@@ -6,7 +6,7 @@ prompt:
       - project_name: "portfolio-generator"
       - languages: "Python 3.12+ (aceita propostas para outras linguagens se influenciar qualidade da entrega)"
       - docstyle: "Google Style (Python)"
-      - ai_models: "Opcional - Claude 3.5 Sonnet via API para gerar resumos automáticos apenas quando README.md não existir ou for muito extenso. Análise principal será feita sem IA usando metadados estruturados."
+      - ai_models: "Opcional - Claude 4.5 Sonnet via Copilot para gerar resumos automáticos apenas quando README.md não existir ou for muito extenso. Análise principal será feita sem IA usando metadados estruturados."
       - libraries:
           essenciais: "pandas, pathlib, pyyaml, tomli, gitpython"
           analise_codigo: "tree-sitter, pygments, chardet"

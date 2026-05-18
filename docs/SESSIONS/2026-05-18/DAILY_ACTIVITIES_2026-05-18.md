@@ -12,8 +12,8 @@
 
 ### 📌 Atividade 1: Executar ritual de primeira sessão
 
-**Horário**: 17:31 - 17:43 UTC (20:41 - 20:43 local)  
-**Tipo**: Setup/Configuração  
+**Horário**: 17:31 - 17:43 UTC (20:41 - 20:43 local)
+**Tipo**: Setup/Configuração
 **Status**: ✅ Concluído
 
 **Descrição**: Executar passo a passo o ritual `session-start-first.prompt.md` para inicializar o projeto.
@@ -53,8 +53,8 @@
 
 ### 📌 Atividade 2: Importar informações de tmp/2026-05-18
 
-**Horário**: 17:43 - 17:47 UTC (20:43 - 20:47 local)  
-**Tipo**: Análise/Importação  
+**Horário**: 17:43 - 17:47 UTC (20:43 - 20:47 local)
+**Tipo**: Análise/Importação
 **Status**: ✅ Concluído
 
 **Descrição**: Analisar e importar informações relevantes da pasta `tmp/2026-05-18/` para a documentação permanente.
@@ -88,8 +88,8 @@
 
 ### 📌 Atividade 3: Primeiro commit Git
 
-**Horário**: 17:47 - 17:48 UTC (20:47 - 20:48 local)  
-**Tipo**: Git/Versionamento  
+**Horário**: 17:47 - 17:48 UTC (20:47 - 20:48 local)
+**Tipo**: Git/Versionamento
 **Status**: ✅ Concluído
 
 **Descrição**: Criar primeiro commit do repositório usando arquivo de mensagem (regra P0).

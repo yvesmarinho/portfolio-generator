@@ -275,7 +275,7 @@ Ver arquivo completo em: [schemas/portfolio-schema-v1.json](../../schemas/portfo
 
 ---
 
-**Documento criado**: 2026-05-18  
-**Baseado em**: tmp/2026-05-18/RESUMO_ANALISE.md, QUESTIONARIO_OBJETIVO_INIT.md, ORIENTACOES_COPILOT.md  
-**Autor**: GitHub Copilot (Claude Sonnet 4.5)  
+**Documento criado**: 2026-05-18
+**Baseado em**: tmp/2026-05-18/RESUMO_ANALISE.md, QUESTIONARIO_OBJETIVO_INIT.md, ORIENTACOES_COPILOT.md
+**Autor**: GitHub Copilot (Claude Sonnet 4.5)
 **Versão**: 1.0
