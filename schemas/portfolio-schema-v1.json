@@ -1,0 +1,470 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://vyamarinho.dev/schemas/portfolio-v1.json",
+  "title": "Professional Portfolio Schema",
+  "description": "Schema para catálogo automatizado de projetos profissionais",
+  "type": "object",
+  "required": ["version", "generated_at", "metadata", "projects"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Versão do schema",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "example": "1.0.0"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp de geração (ISO 8601)",
+      "example": "2026-05-18T15:30:00Z"
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["scan_path", "total_projects", "generator"],
+      "properties": {
+        "scan_path": {
+          "type": "string",
+          "description": "Caminho raiz escaneado",
+          "example": "/home/yves_marinho/Documentos/DevOps/"
+        },
+        "total_projects": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total de projetos encontrados"
+        },
+        "scan_duration_seconds": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Tempo de execução da análise"
+        },
+        "generator": {
+          "type": "object",
+          "required": ["name", "version"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Nome da ferramenta geradora",
+              "example": "portfolio-gen"
+            },
+            "version": {
+              "type": "string",
+              "pattern": "^\\d+\\.\\d+\\.\\d+$",
+              "example": "1.0.0"
+            }
+          }
+        },
+        "filters_applied": {
+          "type": "object",
+          "description": "Filtros usados durante scan",
+          "properties": {
+            "excluded_folders": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "example": [".git", "node_modules", "__pycache__"]
+            },
+            "included_types": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "example": ["python", "javascript", "shell"]
+            }
+          }
+        }
+      }
+    },
+    "projects": {
+      "type": "array",
+      "description": "Lista de projetos analisados",
+      "items": {
+        "$ref": "#/definitions/project"
+      }
+    }
+  },
+  "definitions": {
+    "project": {
+      "type": "object",
+      "required": ["id", "name", "path", "type", "languages"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identificador único do projeto (slug)",
+          "pattern": "^[a-z0-9-]+$",
+          "example": "portfolio-generator"
+        },
+        "name": {
+          "type": "string",
+          "description": "Nome do projeto",
+          "minLength": 1,
+          "example": "Test Workspace Fix"
+        },
+        "path": {
+          "type": "string",
+          "description": "Caminho relativo ao scan_path",
+          "example": "Projetos/portfolio-generator"
+        },
+        "absolute_path": {
+          "type": "string",
+          "description": "Caminho absoluto do projeto",
+          "example": "/home/yves_marinho/Documentos/DevOps/Projetos/portfolio-generator"
+        },
+        "type": {
+          "type": "string",
+          "description": "Classificação do tipo de projeto",
+          "enum": [
+            "web-application",
+            "cli-tool",
+            "library",
+            "api-service",
+            "data-analysis",
+            "infrastructure",
+            "automation",
+            "validation",
+            "documentation",
+            "other"
+          ],
+          "example": "validation"
+        },
+        "description": {
+          "type": "string",
+          "description": "Resumo do projeto (100-300 chars ideal)",
+          "maxLength": 1000,
+          "example": "Projeto de teste e validação do Enterprise Default Project Template"
+        },
+        "summary": {
+          "type": "string",
+          "description": "Descrição curta (tweet-size)",
+          "maxLength": 280,
+          "example": "Valida scaffolding automático, configurações MCP e processo de inicialização de projetos"
+        },
+        "languages": {
+          "type": "array",
+          "description": "Linguagens de programação detectadas (ordenadas por %)",
+          "items": {
+            "type": "object",
+            "required": ["name", "percentage"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "example": "Python"
+              },
+              "percentage": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "example": 75.5
+              },
+              "files_count": {
+                "type": "integer",
+                "minimum": 0,
+                "example": 42
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "technologies": {
+          "type": "array",
+          "description": "Tecnologias/frameworks identificados",
+          "items": {
+            "type": "string"
+          },
+          "example": ["VS Code", "MCP", "GitHub Actions", "Python 3.12"]
+        },
+        "topics": {
+          "type": "array",
+          "description": "Tags/categorias do projeto",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "example": ["testing", "validation", "scaffolding", "template"]
+        },
+        "metrics": {
+          "type": "object",
+          "description": "Métricas quantitativas do projeto",
+          "properties": {
+            "total_files": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Total de arquivos (exceto binários)"
+            },
+            "lines_of_code": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Linhas de código (sem comentários/vazias)"
+            },
+            "total_lines": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Total de linhas (incluindo tudo)"
+            },
+            "size_bytes": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Tamanho total em bytes"
+            },
+            "commit_count": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Total de commits (se Git)"
+            }
+          }
+        },
+        "git": {
+          "type": "object",
+          "description": "Informações do repositório Git (se aplicável)",
+          "properties": {
+            "is_repo": {
+              "type": "boolean",
+              "description": "Indica se é repositório Git"
+            },
+            "remote_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL do remote origin",
+              "example": "https://github.com/yvesmarinho/portfolio-generator.git"
+            },
+            "default_branch": {
+              "type": "string",
+              "example": "master"
+            },
+            "last_commit": {
+              "type": "object",
+              "properties": {
+                "sha": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{40}$",
+                  "example": "2625586a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "docs(spec): gerar questionário para completar objetivo-init.yaml"
+                },
+                "author": {
+                  "type": "string",
+                  "example": "Yves Marinho"
+                },
+                "date": {
+                  "type": "string",
+                  "format": "date-time",
+                  "example": "2026-05-18T15:14:39Z"
+                }
+              }
+            },
+            "total_commits": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "contributors": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "example": ["Yves Marinho", "GitHub Copilot"]
+            }
+          }
+        },
+        "dependencies": {
+          "type": "object",
+          "description": "Dependências do projeto por tipo",
+          "properties": {
+            "python": {
+              "type": "array",
+              "description": "Dependências Python (requirements.txt, pyproject.toml)",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "pandas"
+                  },
+                  "version": {
+                    "type": "string",
+                    "example": ">=2.0.0"
+                  },
+                  "source": {
+                    "type": "string",
+                    "enum": ["requirements.txt", "pyproject.toml", "setup.py", "Pipfile"],
+                    "example": "pyproject.toml"
+                  }
+                }
+              }
+            },
+            "javascript": {
+              "type": "array",
+              "description": "Dependências JavaScript (package.json)",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": ["dependency", "devDependency", "peerDependency"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "structure": {
+          "type": "object",
+          "description": "Estrutura de diretórios principais",
+          "properties": {
+            "has_src": {
+              "type": "boolean",
+              "description": "Possui pasta src/"
+            },
+            "has_tests": {
+              "type": "boolean",
+              "description": "Possui testes (tests/, test/, __tests__)"
+            },
+            "has_docs": {
+              "type": "boolean",
+              "description": "Possui documentação (docs/, doc/)"
+            },
+            "has_ci": {
+              "type": "boolean",
+              "description": "Possui CI/CD (.github/workflows, .gitlab-ci.yml)"
+            },
+            "config_files": {
+              "type": "array",
+              "description": "Arquivos de configuração detectados",
+              "items": {
+                "type": "string"
+              },
+              "example": ["pyproject.toml", ".gitignore", "Makefile"]
+            }
+          }
+        },
+        "readme": {
+          "type": "object",
+          "description": "Informações extraídas do README",
+          "properties": {
+            "exists": {
+              "type": "boolean",
+              "description": "Indica se README existe"
+            },
+            "path": {
+              "type": "string",
+              "description": "Caminho relativo do README",
+              "example": "README.md"
+            },
+            "title": {
+              "type": "string",
+              "description": "Título extraído (primeiro h1)",
+              "example": "Test Workspace Fix"
+            },
+            "badges": {
+              "type": "array",
+              "description": "Badges detectados no README",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "example": "build"
+                  },
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                }
+              }
+            },
+            "sections": {
+              "type": "array",
+              "description": "Seções principais do README",
+              "items": {
+                "type": "string"
+              },
+              "example": ["Installation", "Usage", "Contributing", "License"]
+            }
+          }
+        },
+        "license": {
+          "type": "object",
+          "description": "Informações de licença",
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "Tipo de licença (SPDX identifier)",
+              "example": "MIT"
+            },
+            "file": {
+              "type": "string",
+              "description": "Arquivo de licença",
+              "example": "LICENSE"
+            }
+          }
+        },
+        "status": {
+          "type": "string",
+          "description": "Status atual do projeto",
+          "enum": ["active", "maintenance", "archived", "experimental", "unknown"],
+          "example": "active"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Data de criação (primeiro commit ou data de pasta)"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Data de última modificação"
+        },
+        "ai_generated": {
+          "type": "object",
+          "description": "Campos gerados por IA (se aplicável)",
+          "properties": {
+            "summary": {
+              "type": "string",
+              "description": "Resumo gerado por IA"
+            },
+            "classification": {
+              "type": "string",
+              "description": "Classificação automática do tipo de projeto"
+            },
+            "keywords": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Palavras-chave extraídas por IA"
+            },
+            "model_used": {
+              "type": "string",
+              "description": "Modelo de IA usado",
+              "example": "claude-3-5-sonnet-20241022"
+            }
+          }
+        },
+        "errors": {
+          "type": "array",
+          "description": "Erros encontrados durante análise do projeto",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "example": "git_error"
+              },
+              "message": {
+                "type": "string",
+                "example": "Could not determine remote URL"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

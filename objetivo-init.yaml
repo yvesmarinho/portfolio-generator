@@ -1,0 +1,169 @@
+prompt:
+  role: user
+  content:
+    description: "Criar ferramenta de análise automatizada para catalogar projetos em /home/yves_marinho/Documentos/DevOps/, gerando portfólio profissional em JSON com resumos, métricas de código, tecnologias e metadados Git. Solução de automação para uso profissional com possibilidade de reutilização em outras demandas."
+    specification:
+      - project_name: "portfolio-generator"
+      - languages: "Python 3.12+ (aceita propostas para outras linguagens se influenciar qualidade da entrega)"
+      - docstyle: "Google Style (Python)"
+      - ai_models: "Opcional - Claude 3.5 Sonnet via API para gerar resumos automáticos apenas quando README.md não existir ou for muito extenso. Análise principal será feita sem IA usando metadados estruturados."
+      - libraries:
+          essenciais: "pandas, pathlib, pyyaml, tomli, gitpython"
+          analise_codigo: "tree-sitter, pygments, chardet"
+          cli_ux: "click, loguru, rich"
+          ia_opcional: "anthropic ou openai (para resumos apenas)"
+      - data_volume: "1-10 GB (grande)"
+      - workflow-objetivo: "Workflow baseado em objetivo.yaml v2.0 com SpecKit"
+      - workflow-specify: "Geração automática de spec.md, plan.md e tasks.md"
+      - out-scope: "Itens fora do escopo serão documentados separadamente"
+      - rules:
+          - Regras específicas do projeto:
+              - "Aplicar as melhores práticas e frameworks do mercado. Como SOLID, design pattern Factory e outros."
+              - "Utilizar programação em módulos por responsabilidades e evitar longos arquivos de código"
+              - "Utilizar biblioteca Python CLI (click)"
+              - "Utilizar Loguru, com logs detalhados que demonstrem o fluxo que o programa percorre"
+              - "Nunca processar arquivos fora de /home/yves_marinho/Documentos/DevOps/"
+              - "Validar todas as entradas de usuário"
+              - "Validar dados na entrada de função/classes incluindo tipagem"
+              - "Utilizar arquivos JSON para dados sensíveis, que nunca devem ser fixos no código"
+          - Regras de qualidade:
+              - "Linting obrigatório antes de commit (ruff, pylint)"
+              - "Cobertura de testes mínima: 90%"
+              - "Type hints obrigatórios em Python"
+              - "Documentação obrigatória em todas as funções e classes"
+              - "Headers com detalhes em cada arquivo de código"
+          - Regras gerais:
+              - "Todos os arquivos gerados devem ser armazenados nas devidas pastas, na raiz do projeto só os arquivos extremamente necessários"
+              - "Códigos gerados devem seguir padrões de qualidade e estilo, com linting e formatação automática"
+              - "Fluxo de trabalho deve ser guiado por prompts para GitHub Copilot"
+              - "Configuração MCP deve ser gerada automaticamente baseada nas especificações"
+              - "Sistema de versionamento e histórico deve rastrear todas as mudanças"
+              - "Utilizar as melhores práticas de desenvolvimento de software, incluindo testes automatizados, documentação clara e manutenção de código"
+              - "Utilizar as melhores práticas de segurança, incluindo a gestão segura de credenciais e a proteção contra vulnerabilidades comuns"
+    folder_structure:
+      - ".github - Agents, Workflows e ações para CI/CD (gerados
+        automaticamente)"
+      - ".git-hooks - Hooks personalizados para Git (gerados automaticamente)"
+      - "./memory - Armazenamento de memória e contexto para agentes (gerado
+        automaticamente)"
+      - ".secrets - Armazenamento seguro de chaves e tokens (não versionado)"
+      - ".session-index - Índice de sessões e interações (gerado automaticamente)"
+      - ".sesssion-time - Registro de tempo gasto em cada sessão (gerado automaticamente)"
+      - ".specify - Configurações específicas do projeto (geradas
+        automaticamente)"
+      - ".vscode - Configurações VS Code e MCP (geradas automaticamente)"
+      - "docs - Documentação (gerada automaticamente)"
+      - "logs - Logs de execução e histórico de mudanças (gerados automaticamente)"
+      - "scripts - Scripts de automação inteligente"
+      - "src - Código-fonte do projeto (estrutura específica por tipo)"
+      - "test - Testes automatizados (framework baseado na linguagem)"
+      - "tmp - Arquivos temporários e de backup (não versionados e removidos
+        automaticamente no final da sessão)"
+      - "objetivo.yaml - Especificação detalhada do projeto"
+    expected_outcome:
+      criterios_sucesso:
+        - "Sistema capaz de analisar arquivos e gerar um resumo com informações de qualidade"
+        - "Gerar arquivo JSON contendo Nome do projeto, tipo do projeto, resumo rico em detalhes"
+        - "A execução do código tem de respeitar a utilização de máquina para evitar travamentos"
+      entregaveis:
+        - "Ferramenta CLI funcional (portfolio-gen)"
+        - "Documentação completa em docs/"
+        - "Suite de testes com 90%+ cobertura"
+        - "Relatório de validação do Enterprise Template"
+      caso_uso_demo:
+        - "Gerar portfólio de projetos Python da pasta /home/yves_marinho/Documentos/DevOps/Vya-Jobs/enterprise-python-snippets"
+
+    infrastructure:
+      ambiente_desenvolvimento:
+        sistema_operacional: "Linux Mint"
+        python_version: "3.12+"
+        gerenciador_pacotes: "uv"
+        ide_editor: "VS Code"
+        git_workflow: "a ser definido"
+      dependencias_externas:
+        - "Acesso à internet (para modelos de IA, APIs) - opcional"
+      deploy_distribuicao:
+        - "Script local (execução direta via python/shell)"
+      configuracao_secrets:
+        - "Secrets em .secrets/ (já no .gitignore)"
+      monitoramento_logs:
+        logging: "loguru"
+        metricas: "N/A"
+        tracing: "N/A"
+        alertas: "N/A"
+
+
+    profile:
+      - role: "python-developer"
+        skill_level: "advanced"
+        description: "Desenvolvedor Python experiente com foco em CLI tools e automação"
+      - role: "data-analyst"
+        skill_level: "intermediate"
+        description: "Análise de dados com Pandas para processamento de metadados"
+      - role: "cli-tool-developer"
+        skill_level: "intermediate"
+        description: "Desenvolvimento de ferramentas CLI com click e rich"
+      - role: "copilot-assisted-developer"
+        skill_level: "advanced"
+        description: "Uso avançado de GitHub Copilot para acelerar desenvolvimento"
+    features_to_implement:
+      mvp:
+        - name: "Scanner de Diretórios"
+          description: "Varredura recursiva com filtros e exclusões (.git, node_modules)"
+          criterio_sucesso: "Escanear 100+ projetos em < 30 segundos"
+        - name: "Extrator de Metadados"
+          description: "Coleta dados estruturados (linguagens, deps, git info)"
+          criterio_sucesso: "Processar 1 projeto em < 2 segundos"
+        - name: "Analisador de Arquivos README"
+          description: "Parser de README.md para extrair descrições"
+          criterio_sucesso: "90%+ dos projetos com README obtêm descrição válida"
+        - name: "Gerador de JSON"
+          description: "Exporta portfólio em schema definido com validação"
+          criterio_sucesso: "JSON válido, arquivo < 5 MB para 100 projetos"
+        - name: "CLI Interativo"
+          description: "Interface com progress bars, verbose/quiet, seleção de pastas"
+          criterio_sucesso: "UX fluida, erros claros, help completo"
+      secundarias:
+        - "Análise de Qualidade de Código - Métricas de complexidade, duplicação, coverage"
+        - "Geração de Relatório HTML - Dashboard visual do portfólio"
+        - "Comparação Temporal - Rastrear evolução dos projetos ao longo do tempo"
+        - "Exportação Multi-formato - Markdown, HTML, CSV além de JSON"
+        - "Detecção de Padrões Arquiteturais - Identificar MVC, microservices, monolith"
+      integracoes: "N/A"
+
+    pending_tasks:
+      - task: "Configurar ambiente virtual Python"
+        status: "completed"
+        prioridade: 0
+        nota: ".venv criado"
+      - task: "Definir schema JSON para portfólio"
+        status: "completed"
+        prioridade: 0
+        nota: "schemas/portfolio-schema-v1.json criado"
+      - task: "Criar estrutura de pastas src/"
+        status: "pending"
+        prioridade: 1
+      - task: "Instalar dependências (pandas, click, rich, loguru, gitpython, etc.)"
+        status: "pending"
+        prioridade: 2
+      - task: "Criar módulo scanner de diretórios"
+        status: "pending"
+        prioridade: 3
+      - task: "Criar módulo extrator de metadados"
+        status: "pending"
+        prioridade: 4
+      - task: "Criar módulo analisador de README"
+        status: "pending"
+        prioridade: 5
+      - task: "Criar módulo gerador de JSON"
+        status: "pending"
+        prioridade: 6
+      - task: "Criar CLI principal"
+        status: "pending"
+        prioridade: 7
+      - task: "Definir testes unitários"
+        status: "pending"
+        prioridade: 8
+      - task: "Documentar casos de uso e exemplos"
+        status: "pending"
+        prioridade: 9

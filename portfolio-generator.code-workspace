@@ -1,0 +1,130 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "python.defaultInterpreterPath": ".venv/bin/python",
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.analysis.typeCheckingMode": "basic",
+    "editor.rulers": [
+      88,
+      120
+    ],
+    "isort.args": [
+      "--profile",
+      "black"
+    ],
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true
+  },
+  "mcp": {
+    "servers": {
+      "memory": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-memory"
+        ],
+        "type": "stdio"
+      },
+      "sequential-thinking": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-sequential-thinking"
+        ],
+        "type": "stdio"
+      },
+      "filesystem": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-filesystem",
+          "."
+        ],
+        "type": "stdio"
+      },
+      "github": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-github"
+        ],
+        "type": "stdio",
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PERSONAL_ACCESS_TOKEN}"
+        }
+      }
+    }
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "make: install-deps",
+        "type": "shell",
+        "command": "make install-deps",
+        "group": "build",
+        "problemMatcher": []
+      },
+      {
+        "label": "make: dev",
+        "type": "shell",
+        "command": "make dev",
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "make: build",
+        "type": "shell",
+        "command": "make build",
+        "group": "build",
+        "problemMatcher": []
+      },
+      {
+        "label": "make: test",
+        "type": "shell",
+        "command": "make test",
+        "group": {
+          "kind": "test",
+          "isDefault": true
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "make: lint",
+        "type": "shell",
+        "command": "make lint",
+        "group": "test",
+        "problemMatcher": []
+      },
+      {
+        "label": "make: format",
+        "type": "shell",
+        "command": "make format",
+        "group": "build",
+        "problemMatcher": []
+      },
+      {
+        "label": "make: clean",
+        "type": "shell",
+        "command": "make clean",
+        "group": "build",
+        "problemMatcher": []
+      }
+    ]
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": []
+  }
+}

@@ -1,0 +1,263 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2026-05-18T15:30:00Z",
+  "metadata": {
+    "scan_path": "/home/yves_marinho/Documentos/DevOps/",
+    "total_projects": 2,
+    "scan_duration_seconds": 8.5,
+    "generator": {
+      "name": "portfolio-gen",
+      "version": "1.0.0"
+    },
+    "filters_applied": {
+      "excluded_folders": [
+        ".git",
+        "node_modules",
+        "__pycache__",
+        ".venv",
+        "venv",
+        "dist",
+        "build"
+      ],
+      "included_types": [
+        "python",
+        "javascript",
+        "typescript",
+        "shell"
+      ]
+    }
+  },
+  "projects": [
+    {
+      "id": "portfolio-generator",
+      "name": "Test Workspace Fix",
+      "path": "Projetos/portfolio-generator",
+      "absolute_path": "/home/yves_marinho/Documentos/DevOps/Projetos/portfolio-generator",
+      "type": "validation",
+      "description": "Projeto de teste e validação de workspace do Enterprise Default Project Template. Usado para validar scaffolding automático, inicialização e configurações MCP.",
+      "summary": "Valida scaffolding automático, configurações MCP e processo de inicialização de projetos Enterprise Template",
+      "languages": [
+        {
+          "name": "Python",
+          "percentage": 65.2,
+          "files_count": 15
+        },
+        {
+          "name": "Shell",
+          "percentage": 20.5,
+          "files_count": 8
+        },
+        {
+          "name": "Markdown",
+          "percentage": 14.3,
+          "files_count": 25
+        }
+      ],
+      "technologies": [
+        "VS Code",
+        "MCP (Model Context Protocol)",
+        "GitHub Actions",
+        "Python 3.12+",
+        "uv",
+        "SpecKit"
+      ],
+      "topics": [
+        "testing",
+        "validation",
+        "scaffolding",
+        "template",
+        "enterprise",
+        "automation"
+      ],
+      "metrics": {
+        "total_files": 252,
+        "lines_of_code": 15420,
+        "total_lines": 18184,
+        "size_bytes": 633856,
+        "commit_count": 5
+      },
+      "git": {
+        "is_repo": true,
+        "remote_url": "https://github.com/yvesmarinho/portfolio-generator.git",
+        "default_branch": "master",
+        "last_commit": {
+          "sha": "2625586a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q",
+          "message": "docs(spec): gerar questionário para completar objetivo-init.yaml",
+          "author": "Yves Marinho",
+          "date": "2026-05-18T15:14:39Z"
+        },
+        "total_commits": 5,
+        "contributors": [
+          "Yves Marinho"
+        ]
+      },
+      "dependencies": {
+        "python": []
+      },
+      "structure": {
+        "has_src": true,
+        "has_tests": false,
+        "has_docs": true,
+        "has_ci": true,
+        "config_files": [
+          "Makefile",
+          ".gitignore",
+          ".copilot-rules.md",
+          "objetivo.yaml",
+          "mcp-questions.yaml"
+        ]
+      },
+      "readme": {
+        "exists": true,
+        "path": "README.md",
+        "title": "Test Workspace Fix",
+        "badges": [],
+        "sections": [
+          "Sobre",
+          "Estrutura",
+          "Uso",
+          "Validação"
+        ]
+      },
+      "license": {
+        "type": "MIT",
+        "file": "LICENSE"
+      },
+      "status": "active",
+      "created_at": "2026-04-27T10:00:00Z",
+      "updated_at": "2026-05-18T15:14:39Z",
+      "errors": []
+    },
+    {
+      "id": "enterprise-python-snippets",
+      "name": "Enterprise Python Snippets",
+      "path": "Vya-Jobs/enterprise-python-snippets",
+      "absolute_path": "/home/yves_marinho/Documentos/DevOps/Vya-Jobs/enterprise-python-snippets",
+      "type": "library",
+      "description": "Coleção de snippets Python para desenvolvimento enterprise. Inclui padrões de design, utilities e templates reutilizáveis.",
+      "summary": "Biblioteca de snippets Python reutilizáveis para projetos enterprise com padrões SOLID e best practices",
+      "languages": [
+        {
+          "name": "Python",
+          "percentage": 92.8,
+          "files_count": 45
+        },
+        {
+          "name": "Markdown",
+          "percentage": 7.2,
+          "files_count": 8
+        }
+      ],
+      "technologies": [
+        "Python 3.12+",
+        "pytest",
+        "mypy",
+        "ruff"
+      ],
+      "topics": [
+        "snippets",
+        "library",
+        "enterprise",
+        "patterns",
+        "utilities",
+        "python"
+      ],
+      "metrics": {
+        "total_files": 53,
+        "lines_of_code": 3250,
+        "total_lines": 4120,
+        "size_bytes": 125000,
+        "commit_count": 28
+      },
+      "git": {
+        "is_repo": true,
+        "remote_url": "https://github.com/yvesmarinho/enterprise-python-snippets.git",
+        "default_branch": "main",
+        "last_commit": {
+          "sha": "7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y",
+          "message": "feat: adicionar factory pattern examples",
+          "author": "Yves Marinho",
+          "date": "2026-05-10T14:22:00Z"
+        },
+        "total_commits": 28,
+        "contributors": [
+          "Yves Marinho"
+        ]
+      },
+      "dependencies": {
+        "python": [
+          {
+            "name": "pytest",
+            "version": ">=8.0.0",
+            "source": "pyproject.toml"
+          },
+          {
+            "name": "mypy",
+            "version": ">=1.8.0",
+            "source": "pyproject.toml"
+          },
+          {
+            "name": "ruff",
+            "version": ">=0.3.0",
+            "source": "pyproject.toml"
+          }
+        ]
+      },
+      "structure": {
+        "has_src": true,
+        "has_tests": true,
+        "has_docs": true,
+        "has_ci": true,
+        "config_files": [
+          "pyproject.toml",
+          ".gitignore",
+          "pytest.ini",
+          "mypy.ini"
+        ]
+      },
+      "readme": {
+        "exists": true,
+        "path": "README.md",
+        "title": "Enterprise Python Snippets",
+        "badges": [
+          {
+            "type": "build",
+            "url": "https://github.com/yvesmarinho/enterprise-python-snippets/actions/workflows/ci.yml/badge.svg"
+          },
+          {
+            "type": "coverage",
+            "url": "https://codecov.io/gh/yvesmarinho/enterprise-python-snippets/branch/main/graph/badge.svg"
+          }
+        ],
+        "sections": [
+          "Installation",
+          "Usage",
+          "Snippets Catalog",
+          "Contributing",
+          "License"
+        ]
+      },
+      "license": {
+        "type": "MIT",
+        "file": "LICENSE"
+      },
+      "status": "active",
+      "created_at": "2026-03-15T09:00:00Z",
+      "updated_at": "2026-05-10T14:22:00Z",
+      "ai_generated": {
+        "summary": "Biblioteca Python contendo snippets e padrões de design para desenvolvimento enterprise, com foco em SOLID principles, factory patterns e utilities reutilizáveis.",
+        "classification": "library",
+        "keywords": [
+          "design-patterns",
+          "factory",
+          "SOLID",
+          "enterprise",
+          "reusable",
+          "utilities"
+        ],
+        "model_used": "claude-3-5-sonnet-20241022"
+      },
+      "errors": []
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+scaffold_version: 1.0.0
+created_at: '2026-04-27T15:36:13Z'
+updated_at: '2026-05-18T15:29:15Z'
+project:
+  name: portfolio-generator
+  title: Test Workspace Fix
+  description: ''
+  domain: programming
+  language: python
+  github_repo: ''
+paths:
+  target_dir: /home/yves_marinho/Documentos/DevOps/Projetos/portfolio-generator
+  shared_dir: /home/yves_marinho/Documentos/DevOps/.copilot-shared
+profiles_applied: []
+template_versions:
+  agent-file-template.md: 1.0.0
+template_bases:
+  agent-file-template.md:
+    version: 1.0.0
+    content: '---
+
+      template_version: "1.0.0"
+
+      last_updated: "2026-04-14"
+
+      breaking_changes: false
+
+      ---
+
+
+      # [PROJECT NAME] Development Guidelines
+
+
+      Auto-generated from all feature plans. Last updated: [DATE]
+
+
+      ## Active Technologies
+
+
+      [EXTRACTED FROM ALL PLAN.MD FILES]
+
+
+      ## Project Structure
+
+
+      ```text
+
+      [ACTUAL STRUCTURE FROM PLANS]
+
+      ```
+
+
+      ## Commands
+
+
+      [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES]
+
+
+      ## Code Style
+
+
+      [LANGUAGE-SPECIFIC, ONLY FOR LANGUAGES IN USE]
+
+
+      ## Recent Changes
+
+
+      [LAST 3 FEATURES AND WHAT THEY ADDED]
+
+
+      <!-- MANUAL ADDITIONS START -->
+
+      <!-- MANUAL ADDITIONS END -->
+
+      '
