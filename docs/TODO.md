@@ -1,17 +1,13 @@
 # 📝 TODO — Portfolio Generator
 
-**Last Updated**: 2026-05-18T20:43:00Z
+**Last Updated**: 2026-05-18T21:12:00Z
 **Status**: 🟢 Em andamento
 
 ---
 
 ## 🟠 Em Progresso
 
-- [ ] **SPEC-01**: Atualizar `objetivo.yaml` com decisões do questionário
-  - Prioridade: P0
-  - Responsável: Yves Marinho
-  - Data prevista: 2026-05-19
-  - Referência: [docs/PROJECT_SPECIFICATION.md](PROJECT_SPECIFICATION.md)
+(Nenhuma tarefa em progresso no momento)
 
 ## 🔵 Pendente - SpecKit Workflow
 
@@ -85,9 +81,6 @@
 - [ ] **INFRA-02**: Configurar pre-commit hooks (ruff, mypy)
   - Prioridade: P1
 
-- [ ] **INFRA-03**: Adicionar CI/CD básico (GitHub Actions)
-  - Prioridade: P2
-
 ## ✅ Concluído
 
 - [x] **SETUP-01**: Scaffold inicial gerado (2026-05-18T12:29:00Z)
@@ -98,6 +91,18 @@
   - Session-index e session-time inicializados
   - Memory system criado (.memory/)
   - Regras Copilot carregadas
+
+- [x] **SPEC-01**: Atualizar `objetivo.yaml` com decisões do questionário (2026-05-18T21:11:00Z)
+  - Especificação completa implementada
+  - Backup criado (objetivo.yaml.bkp.20260518_201126)
+  - Commit: e6febca
+  - Referência: [docs/PROJECT_SPECIFICATION.md](PROJECT_SPECIFICATION.md)
+
+- [x] **INFRA-03**: Adicionar CI/CD básico (GitHub Actions) (2026-05-18T20:55:00Z)
+  - Workflow .github/workflows/ci.yml criado
+  - Jobs: lint (ruff), test (pytest), security (bandit)
+  - Python 3.12 e 3.13
+  - Commit: e6febca
   - Scan de segurança: 🟢 LIMPO
 - [x] **SPEC-00**: Análise de objetivo-init.yaml concluída (2026-05-18T12:30:00Z)
   - Questionário respondido
