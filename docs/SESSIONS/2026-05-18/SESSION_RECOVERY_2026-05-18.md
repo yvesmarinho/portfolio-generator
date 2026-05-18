@@ -26,8 +26,9 @@ Esta é a **primeira sessão** deste projeto.
 7. ✅ Scan de segurança inicial
 8. ✅ Inicializar session-index e session-time
 9. ✅ Inicializar Memory System
-10. 🔵 Em progresso: Criar documentação inicial de sessão
-11. ⏳ Pendente: Importar informações de tmp/2026-05-18
+10. ✅ Criar documentação inicial de sessão
+11. ✅ Importar informações de tmp/2026-05-18
+12. ✅ Criar primeiro commit Git
 
 ---
 
