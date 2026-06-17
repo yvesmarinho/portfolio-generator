@@ -13,6 +13,8 @@ from __future__ import annotations
 import click
 from rich.console import Console
 
+from cli._logging import configure_logging
+
 console = Console()
 
 DEFAULT_SCAN_PATH = "/home/yves_marinho/Documentos/DevOps/"
@@ -21,7 +23,14 @@ ALLOWED_SCOPE = "/home/yves_marinho/Documentos/DevOps/"
 
 @click.group()
 @click.version_option(version="1.0.0", prog_name="portfolio-gen")
-def cli() -> None:
+@click.option(
+    "--verbose",
+    "-v",
+    is_flag=True,
+    default=False,
+    help="Modo verbose: exibe logs DEBUG no terminal",
+)
+def cli(verbose: bool) -> None:
     """
     portfolio-gen — Gerador automatizado de portfólio profissional.
 
@@ -36,6 +45,7 @@ def cli() -> None:
       portfolio-gen validate output/portfolio-2026-06-17.json
       portfolio-gen report output/portfolio-2026-06-17.json
     """
+    configure_logging(verbose=verbose)
 
 
 @cli.command()
@@ -62,7 +72,6 @@ def cli() -> None:
 @click.option("--ai-min-words", default=30, show_default=True, help="Mínimo de palavras no README para não usar IA")
 @click.option("--ai-max-tokens", default=2000, show_default=True, help="Máximo de tokens no README antes de usar IA")
 @click.option("--dry-run", is_flag=True, default=False, help="Executar análise sem criar arquivos")
-@click.option("--verbose/--quiet", default=True, help="Nível de output no terminal")
 def scan(
     path: str,
     output: str | None,
@@ -71,7 +80,6 @@ def scan(
     ai_min_words: int,
     ai_max_tokens: int,
     dry_run: bool,
-    verbose: bool,
 ) -> None:
     """
     Escaneia o diretório alvo e gera o arquivo de portfólio JSON.
@@ -81,9 +89,9 @@ def scan(
     \b
       portfolio-gen scan
       portfolio-gen scan --path ~/Documentos/DevOps/ --workers 2
-      portfolio-gen scan --no-ai --dry-run --verbose
+      portfolio-gen scan --no-ai --dry-run
     """
-    console.print("[yellow]⚠ Módulo scan ainda não implementado (Phase 2+)[/yellow]")
+    console.print("[yellow]⚠ Módulo scan ainda não implementado (Phase 3)[/yellow]")
     console.print(f"  path={path}, dry_run={dry_run}, workers={workers}, no_ai={no_ai}")
     raise SystemExit(0)
 

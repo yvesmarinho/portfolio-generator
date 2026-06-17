@@ -1,13 +1,14 @@
 # 📝 TODO — Portfolio Generator
 
-**Last Updated**: 2026-05-18T21:12:00Z
+**Last Updated**: 2026-06-17T00:00:00Z
 **Status**: 🟢 Em andamento
 
 ---
 
 ## 🟠 Em Progresso
 
-(Nenhuma tarefa em progresso no momento)
+- [ ] **DEV-Phase3**: Implementar Phase 3 — US1: Generate Complete Portfolio (MVP)
+  - T015–T029: Extractors (language, git, metrics), readme_parser, portfolio_generator, scan CLI
 
 ## 🔵 Pendente - SpecKit Workflow
 
@@ -79,7 +80,22 @@
 - [ ] **INFRA-02**: Configurar pre-commit hooks (ruff, mypy)
   - Prioridade: P1
 
-## ✅ Concluído
+## ✅ Concluído (Phase 2 — 2026-06-17)
+
+- [x] **DEV-Phase1**: Phase 1 Setup completo (2026-06-17) — commit bb6a3d0
+  - `pyproject.toml`, `Makefile`, `.pre-commit-config.yaml`, `schemas/portfolio-schema-v1.json`
+  - Factory `__init__.py` para scanner/extractor/analyzer/generator
+  - CLI stub `portfolio-gen --help` funcionando, ruff+mypy+bandit verdes
+
+- [x] **DEV-Phase2**: Phase 2 Fundação completa (2026-06-17)
+  - T009: CLI atualizado com `--verbose/-v` no grupo + `configure_logging()` 
+  - T010: `validate_path_scope()` — scope guard de segurança (scope: `/home/yves_marinho/Documentos/DevOps/`)
+  - T011: `DirectoryScanner.list_projects()` — filtra `.git`, `node_modules`, `__pycache__`, `.venv`, `tmp`
+  - T012: `src/cli/_logging.py` — loguru com handler de arquivo (DEBUG) + stderr (INFO/DEBUG)
+  - T013: Fixtures `no_git_project` + `scan_target` adicionadas ao conftest
+  - T014 TDD: 26 testes em `tests/unit/test_scanner.py` — todos passando
+
+## ✅ Concluído (histórico)
 
 - [x] **SETUP-01**: Scaffold inicial gerado (2026-05-18T12:29:00Z)
 - [x] **SETUP-02**: Ritual de primeira sessão completado (2026-05-18T20:43:00Z)

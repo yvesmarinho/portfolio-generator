@@ -78,9 +78,8 @@ module = ["git.*", "tree_sitter.*", "anthropic.*", "chardet.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-# Módulos internos ainda não implementados (criados nas phases 2-7)
+# Módulos internos ainda não implementados (criados nas phases 3-7)
 module = [
-    "scanner.directory_scanner",
     "extractor.metadata_extractor",
     "analyzer.project_analyzer",
     "generator.portfolio_generator",
