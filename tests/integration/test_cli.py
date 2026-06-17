@@ -2,13 +2,11 @@
 Testes de integração para a CLI via click CliRunner.
 
 T037 (Phase 5 / US3): `portfolio-gen scan --dry-run`
-T040 (Phase 6 / US4): `portfolio-gen validate` (próxima phase)
-
-Escritos ANTES da implementação de T039 (TDD) — os testes de tamanho JSON
-e elegibilidade IA devem FALHAR inicialmente.
+T040 (Phase 6 / US4): `portfolio-gen validate`
 """
 from __future__ import annotations
 
+import json
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from unittest.mock import patch
@@ -139,3 +137,111 @@ class TestScanDryRun:
         assert "IA" in result.output
         # elegíveis = 0
         assert "0" in result.output
+
+
+def _valid_portfolio(tmp_path: Path, n_projects: int = 1) -> Path:
+    """Cria arquivo portfolio JSON válido conforme schema v1."""
+    projects = [
+        {
+            "name": f"project-{i}",
+            "path": f"project-{i}",
+            "type": "script",
+            "description": "Projeto de teste.",
+            "description_source": "readme",
+            "language": {"primary": "Python", "secondary": [], "confidence": 0.9},
+            "metrics": {"file_count": 3, "size_bytes": 1024, "line_count_estimated": 50},
+            "git": {"initialized": False},
+            "technologies": [],
+            "status": "active",
+            "last_modified": "2026-06-17T10:00:00+00:00",
+        }
+        for i in range(n_projects)
+    ]
+    portfolio = {
+        "generated_at": "2026-06-17T10:00:00+00:00",
+        "generator_version": "1.0.0",
+        "scan_path": "/fake/devops",
+        "total_projects": n_projects,
+        "skipped_projects": 0,
+        "scan_duration_seconds": 1.5,
+        "projects": projects,
+    }
+    out = tmp_path / "portfolio.json"
+    out.write_text(json.dumps(portfolio), encoding="utf-8")
+    return out
+
+
+class TestValidateCommand:
+    """T040 (US4): `validate` via CliRunner."""
+
+    def test_valid_json_exits_zero(self, tmp_path: Path) -> None:
+        """`validate` em portfolio JSON válido → exit 0."""
+        runner = CliRunner()
+        portfolio_file = _valid_portfolio(tmp_path)
+        result = runner.invoke(cli, ["validate", str(portfolio_file)], catch_exceptions=False)
+        assert result.exit_code == 0
+
+    def test_valid_json_shows_success_message(self, tmp_path: Path) -> None:
+        """`validate` em portfolio válido exibe mensagem de sucesso."""
+        runner = CliRunner()
+        portfolio_file = _valid_portfolio(tmp_path)
+        result = runner.invoke(cli, ["validate", str(portfolio_file)], catch_exceptions=False)
+        assert "válido" in result.output.lower() or "✓" in result.output
+
+    def test_missing_required_field_exits_one(self, tmp_path: Path) -> None:
+        """`validate` em JSON sem campo obrigatório → exit 1."""
+        runner = CliRunner()
+        invalid = tmp_path / "invalid.json"
+        invalid.write_text(json.dumps({"total_projects": 0}), encoding="utf-8")
+        result = runner.invoke(cli, ["validate", str(invalid)], catch_exceptions=False)
+        assert result.exit_code == 1
+
+    def test_invalid_json_shows_missing_field_name(self, tmp_path: Path) -> None:
+        """`validate` em JSON inválido exibe nome do campo violado (T042)."""
+        runner = CliRunner()
+        invalid = tmp_path / "invalid.json"
+        invalid.write_text(json.dumps({"total_projects": 0}), encoding="utf-8")
+        result = runner.invoke(cli, ["validate", str(invalid)], catch_exceptions=False)
+        assert any(
+            field in result.output
+            for field in ["generated_at", "generator_version", "scan_path", "violação", "missing"]
+        )
+
+    def test_invalid_json_shows_json_path(self, tmp_path: Path) -> None:
+        """`validate` em JSON inválido exibe path no JSON (T042)."""
+        runner = CliRunner()
+        invalid = tmp_path / "invalid.json"
+        invalid.write_text(json.dumps({"total_projects": 0}), encoding="utf-8")
+        result = runner.invoke(cli, ["validate", str(invalid)], catch_exceptions=False)
+        assert "$" in result.output
+
+    def test_nonexistent_file_exits_nonzero(self, tmp_path: Path) -> None:
+        """`validate` em arquivo inexistente → exit não-zero."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ["validate", str(tmp_path / "nonexistent.json")])
+        assert result.exit_code != 0
+
+    def test_invalid_json_syntax_exits_one(self, tmp_path: Path) -> None:
+        """`validate` em arquivo com JSON inválido (sintaxe) → exit 1."""
+        runner = CliRunner()
+        bad_json = tmp_path / "bad.json"
+        bad_json.write_text("{ not valid json }", encoding="utf-8")
+        result = runner.invoke(cli, ["validate", str(bad_json)], catch_exceptions=False)
+        assert result.exit_code == 1
+
+    def test_valid_empty_projects_list_exits_zero(self, tmp_path: Path) -> None:
+        """`validate` em portfolio válido com zero projetos → exit 0."""
+        runner = CliRunner()
+        portfolio_file = _valid_portfolio(tmp_path, n_projects=0)
+        result = runner.invoke(cli, ["validate", str(portfolio_file)], catch_exceptions=False)
+        assert result.exit_code == 0
+
+    def test_wrong_type_field_exits_one(self, tmp_path: Path) -> None:
+        """`validate` em portfolio com tipo errado em campo → exit 1."""
+        runner = CliRunner()
+        portfolio_file = _valid_portfolio(tmp_path)
+        data = json.loads(portfolio_file.read_text())
+        data["total_projects"] = "não-é-inteiro"  # viola type: integer
+        portfolio_file.write_text(json.dumps(data), encoding="utf-8")
+        result = runner.invoke(cli, ["validate", str(portfolio_file)], catch_exceptions=False)
+        assert result.exit_code == 1

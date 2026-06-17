@@ -260,7 +260,7 @@ def _print_scan_summary(
 
 
 @cli.command()
-@click.argument("file", type=click.Path(exists=False))
+@click.argument("file", type=click.Path(exists=True))
 @click.option(
     "--schema",
     default="schemas/portfolio-schema-v1.json",
@@ -281,9 +281,58 @@ def validate(file: str, schema: str, verbose: bool) -> None:
       portfolio-gen validate output/portfolio-2026-06-17.json
       portfolio-gen validate output/portfolio-2026-06-17.json --verbose
     """
-    console.print("[yellow]⚠ Módulo validate ainda não implementado (Phase 6)[/yellow]")
-    console.print(f"  file={file}, schema={schema}")
-    raise SystemExit(0)
+    import jsonschema
+
+    file_path = Path(file)
+    schema_path = Path(schema)
+
+    try:
+        data = json.loads(file_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        console.print(f"[red]Erro: JSON inválido em {file_path.name}: {exc}[/red]")
+        raise SystemExit(1) from None
+    except OSError as exc:
+        console.print(f"[red]Erro ao ler {file_path}: {exc}[/red]")
+        raise SystemExit(1) from None
+
+    if not schema_path.exists():
+        console.print(f"[red]Erro: schema não encontrado: {schema_path}[/red]")
+        raise SystemExit(1)
+
+    try:
+        schema_data = json.loads(schema_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        console.print(f"[red]Erro ao carregar schema: {exc}[/red]")
+        raise SystemExit(1) from None
+
+    validator = jsonschema.Draft7Validator(schema_data)
+    errors = sorted(validator.iter_errors(data), key=lambda e: str(e.message))
+
+    if not errors:
+        console.print(f"[green]✓ Portfolio válido[/green] — {file_path.name}")
+        if verbose:
+            n = data.get("total_projects", 0) if isinstance(data, dict) else 0
+            console.print(f"  [dim]{n} projeto(s) catalogado(s)[/dim]")
+        raise SystemExit(0)
+
+    console.print(
+        f"[red]✗ Portfolio inválido[/red] — "
+        f"{len(errors)} violação(ões) em [bold]{file_path.name}[/bold]"
+    )
+
+    err_table = Table(show_header=True, header_style="bold red", box=None)
+    err_table.add_column("Path JSON", style="cyan", no_wrap=True)
+    err_table.add_column("Violação")
+
+    for err in errors:
+        path_parts = ["$"]
+        for part in err.absolute_path:
+            path_parts.append(f"[{part}]" if isinstance(part, int) else f".{part}")
+        path_str = "".join(path_parts)
+        err_table.add_row(path_str, err.message)
+
+    console.print(err_table)
+    raise SystemExit(1)
 
 
 @cli.command()
