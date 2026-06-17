@@ -7,11 +7,17 @@ scan_project() é segura para uso com ProcessPoolExecutor.
 """
 from __future__ import annotations
 
-from datetime import UTC, datetime
+import traceback
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 from loguru import logger
+
+from analyzer.readme_parser import extract_description, parse_readme, token_count, word_count
+from extractor.git_extractor import GitInfo, extract_git_info
+from extractor.language_extractor import detect_language
+from extractor.metrics_extractor import extract_metrics
 
 EXCLUDED_DIRS: frozenset[str] = frozenset(
     {".git", "node_modules", "__pycache__", ".venv", "tmp"}
@@ -70,16 +76,52 @@ class MetadataExtractor:
         return scan_project(path)
 
 
-def scan_project(path: Path) -> dict[str, Any] | None:
+def _write_bug_report(path: Path, exc: Exception, out_dir: Path) -> None:
+    """
+    Grava um relatório de erro em markdown para um projeto que falhou no scan.
+
+    Cria out_dir se necessário. Silencia erros de I/O para não mascarar o fluxo principal.
+
+    :param path: Path do projeto que falhou.
+    :type path: Path
+    :param exc: Exceção capturada durante o scan.
+    :type exc: Exception
+    :param out_dir: Diretório de saída para os relatórios.
+    :type out_dir: Path
+
+    >>> from pathlib import Path
+    >>> _write_bug_report(Path("/fake"), ValueError("test"), Path("/tmp/__test_bug_dir__"))
+    """
+    try:
+        out_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        report_path = out_dir / f"bug-report-{timestamp}.md"
+        report_path.write_text(
+            f"# Bug Report — {timestamp}\n\n"
+            f"**Status**: OPEN\n"
+            f"**Projeto**: `{path}`\n"
+            f"**Tipo de erro**: `{type(exc).__name__}`\n"
+            f"**Mensagem**: {exc}\n\n"
+            f"## Stack Trace\n\n```\n{traceback.format_exc()}\n```\n",
+            encoding="utf-8",
+        )
+    except Exception as write_exc:
+        logger.warning(f"Não foi possível gravar bug report para '{path}': {write_exc}")
+
+
+def scan_project(path: Path, bug_report_dir: Path | None = None) -> dict[str, Any] | None:
     """
     Extrai todos os metadados de um projeto. Seguro para ProcessPoolExecutor.
 
     Retorna None em caso de qualquer erro irrecuperável durante a extração.
     O path absoluto é retornado em 'path' — convertido para relativo em
-    PortfolioGenerator.build_portfolio().
+    PortfolioGenerator.build_portfolio(). Quando bug_report_dir é fornecido,
+    cria um arquivo bug-report-*.md em caso de falha.
 
     :param path: Caminho do diretório do projeto.
     :type path: Path
+    :param bug_report_dir: Diretório onde gravar bug reports (opcional).
+    :type bug_report_dir: Path | None
     :return: Dicionário de metadados do projeto ou None.
     :rtype: dict[str, Any] | None
 
@@ -90,16 +132,6 @@ def scan_project(path: Path) -> dict[str, Any] | None:
     if not isinstance(path, Path) or not path.exists():
         return None
     try:
-        from analyzer.readme_parser import (
-            extract_description,
-            parse_readme,
-            token_count,
-            word_count,
-        )
-        from extractor.git_extractor import extract_git_info
-        from extractor.language_extractor import detect_language
-        from extractor.metrics_extractor import extract_metrics
-
         lang_info = detect_language(path)
         git_info = extract_git_info(path)
         metrics = extract_metrics(path)
@@ -143,7 +175,9 @@ def scan_project(path: Path) -> dict[str, Any] | None:
             "_readme_word_count": readme_words,
         }
     except Exception as exc:
-        logger.error(f"Erro ao extrair metadados de '{path}': {exc}")
+        logger.warning(f"Projeto '{path}' pulado: {type(exc).__name__}: {exc}")
+        if bug_report_dir is not None:
+            _write_bug_report(path, exc, bug_report_dir)
         return None
 
 
@@ -223,10 +257,6 @@ def _infer_technologies(path: Path) -> list[str]:
 
 def _infer_status(git_info: object) -> str:
     """Infere o status do projeto com base na atividade git."""
-    from datetime import timedelta
-
-    from extractor.git_extractor import GitInfo
-
     if not isinstance(git_info, GitInfo):
         return "unknown"
     try:

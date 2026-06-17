@@ -14,6 +14,7 @@ import os
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path
 
 import click
@@ -132,6 +133,8 @@ def scan(
     console.print(f"[dim]{len(project_paths)} diretórios encontrados — iniciando extração...[/dim]")
 
     n_workers = workers if workers else min(4, os.cpu_count() or 1)
+    bug_dir = Path("docs/bugs")
+    scan_fn = partial(scan_project, bug_report_dir=bug_dir)
     results: list[dict[str, object]] = []
     skipped = 0
     start_time = time.monotonic()
@@ -147,7 +150,7 @@ def scan(
         task_id = progress.add_task("Escaneando projetos...", total=len(project_paths))
 
         with ProcessPoolExecutor(max_workers=n_workers) as executor:
-            future_to_path = {executor.submit(scan_project, p): p for p in project_paths}
+            future_to_path = {executor.submit(scan_fn, p): p for p in project_paths}
             for future in as_completed(future_to_path):
                 result = future.result()
                 if result is None:
@@ -171,6 +174,12 @@ def scan(
     portfolio = gen.build_portfolio(results, meta)
 
     _print_scan_summary(portfolio, skipped, duration, dry_run)
+
+    if skipped > 0:
+        console.print(
+            f"[yellow]⚠ {skipped} projeto(s) pulado(s). "
+            f"Verifique {bug_dir}/ e logs/ para detalhes.[/yellow]"
+        )
 
     if dry_run:
         console.print("[yellow]dry-run: nenhum arquivo criado.[/yellow]")

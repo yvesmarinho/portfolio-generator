@@ -2,11 +2,13 @@
 Testes de integração para o fluxo completo de scan.
 
 T020: scan end-to-end em tests/fixtures/ — projetos detectados, JSON válido contra schema.
+T031 (US2): cenários com projeto corrompido — skipped_projects contabilizado.
 """
 from __future__ import annotations
 
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 from extractor.metadata_extractor import scan_project
 from generator.portfolio_generator import PortfolioGenerator
@@ -154,3 +156,41 @@ class TestScanAndBuildFlow:
         names = [p.name for p in projects]
         assert "python_project" in names
         assert len(projects) >= 4
+
+
+class TestScanFlowWithErrors:
+    """T031 (US2): fluxo com projeto que falha — N-1 resultados, bug-report gerado."""
+
+    def test_scan_error_isolated_no_exception_propagated(self, python_project: Path, tmp_path: Path) -> None:
+        """Falha interna em scan_project() retorna None sem propagar exceção."""
+        with patch("extractor.metadata_extractor.detect_language", side_effect=RuntimeError("iso")):
+            result = scan_project(python_project, bug_report_dir=tmp_path / "bugs")
+        assert result is None
+
+    def test_portfolio_skipped_projects_reflects_failures(self, python_project: Path) -> None:
+        """Portfolio com skipped_projects=1 registra a contagem corretamente."""
+        valid = scan_project(python_project)
+        assert valid is not None
+        gen = PortfolioGenerator({"schema_path": str(SCHEMA_PATH), "generator_version": "1.0.0"})
+        meta = {"scan_path": str(python_project.parent), "scan_duration_seconds": 0.1, "skipped_projects": 1}
+        portfolio = gen.build_portfolio([valid], meta)
+        assert portfolio["skipped_projects"] == 1
+        assert portfolio["total_projects"] == 1
+
+    def test_portfolio_schema_valid_with_skipped_projects(self, python_project: Path) -> None:
+        """Portfolio com skipped_projects ainda passa na validação do schema."""
+        valid = scan_project(python_project)
+        assert valid is not None
+        gen = PortfolioGenerator({"schema_path": str(SCHEMA_PATH), "generator_version": "1.0.0"})
+        meta = {"scan_path": str(python_project.parent), "scan_duration_seconds": 0.1, "skipped_projects": 1}
+        portfolio = gen.build_portfolio([valid], meta)
+        assert gen.validate_schema(portfolio, SCHEMA_PATH) is True
+
+    def test_bug_report_created_for_failed_project(self, python_project: Path, tmp_path: Path) -> None:
+        """Bug report é gravado quando scan_project() falha num projeto real."""
+        bug_dir = tmp_path / "bugs"
+        with patch("extractor.metadata_extractor.detect_language", side_effect=RuntimeError("fail")):
+            scan_project(python_project, bug_report_dir=bug_dir)
+        reports = list(bug_dir.glob("bug-report-*.md"))
+        assert len(reports) == 1
+        assert str(python_project) in reports[0].read_text()

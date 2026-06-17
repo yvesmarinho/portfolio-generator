@@ -1,13 +1,14 @@
 """
-Testes unitários para scanner.directory_scanner.
+Testes unitários para scanner.directory_scanner e scan_project() (US2 — bug reports).
 
-TDD: estes testes foram escritos ANTES da implementação e devem falhar inicialmente.
-Executar ANTES de criar directory_scanner.py para confirmar falha por ImportError.
+TDD: escritos ANTES da implementação e devem falhar inicialmente.
 """
 from __future__ import annotations
 
 from pathlib import Path
+from unittest.mock import patch
 
+from extractor.metadata_extractor import scan_project
 from scanner.directory_scanner import DirectoryScanner, validate_path_scope
 
 ALLOWED_SCOPE = Path("/home/yves_marinho/Documentos/DevOps/")
@@ -233,3 +234,29 @@ class TestDirectoryScanner:
         result = scanner.list_projects(fixtures_dir)
         names = [p.name for p in result]
         assert "corrupted_project" not in names
+
+
+class TestScanProjectBugReportIntegration:
+    """T030 (US2): scan_project() com bug_report_dir — testes de regressão."""
+
+    def test_scan_project_corrupted_returns_none_on_forced_error(self, corrupted_project: Path, tmp_path: Path) -> None:
+        """scan_project() retorna None quando extrator interno falha no projeto corrompido."""
+        bug_dir = tmp_path / "bugs"
+        with patch("extractor.metadata_extractor.detect_language", side_effect=RuntimeError("forced")):
+            result = scan_project(corrupted_project, bug_report_dir=bug_dir)
+        assert result is None
+
+    def test_scan_project_corrupted_creates_bug_report(self, corrupted_project: Path, tmp_path: Path) -> None:
+        """scan_project() grava bug-report quando falha no projeto corrompido."""
+        bug_dir = tmp_path / "bugs"
+        with patch("extractor.metadata_extractor.detect_language", side_effect=RuntimeError("forced")):
+            scan_project(corrupted_project, bug_report_dir=bug_dir)
+        assert len(list(bug_dir.glob("bug-report-*.md"))) == 1
+
+    def test_scan_project_valid_unaffected_by_bug_dir(self, tmp_path: Path) -> None:
+        """Projeto válido retorna dict mesmo quando bug_report_dir está definido."""
+        project = tmp_path / "valid-project"
+        project.mkdir()
+        (project / "main.py").write_text('"""Main."""\n')
+        result = scan_project(project, bug_report_dir=tmp_path / "bugs")
+        assert isinstance(result, dict)
