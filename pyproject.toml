@@ -74,15 +74,13 @@ warn_return_any = true
 warn_unused_configs = true
 
 [[tool.mypy.overrides]]
-module = ["git.*", "tree_sitter.*", "anthropic.*", "chardet.*"]
+module = ["git.*", "tree_sitter.*", "anthropic.*", "chardet.*", "pygments.*", "jsonschema.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-# Módulos internos ainda não implementados (criados nas phases 3-7)
+# Módulos internos ainda não implementados (phases 4-7)
 module = [
-    "extractor.metadata_extractor",
     "analyzer.project_analyzer",
-    "generator.portfolio_generator",
 ]
 ignore_missing_imports = true
 

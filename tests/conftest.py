@@ -6,6 +6,7 @@ Fixtures disponíveis para todos os testes do projeto.
 from __future__ import annotations
 
 import shutil
+import subprocess
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -108,6 +109,44 @@ def no_git_project(fixtures_dir: Path) -> Path:
     main_py = path / "main.py"
     if not main_py.exists():
         main_py.write_text('"""Módulo principal."""\n\n\ndef main() -> None:\n    """Entry point."""\n    print("hello")\n')
+    return path
+
+
+@pytest.fixture(scope="session")
+def git_project(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """
+    Projeto com repositório git inicializado e commit inicial.
+
+    Criado uma vez por sessão de teste em diretório temporário.
+    Usa subprocess para criar um repo git real (necessário para testes do git_extractor).
+
+    :param tmp_path_factory: Factory de paths temporários (injetado pelo pytest).
+    :type tmp_path_factory: pytest.TempPathFactory
+    :return: Path para o projeto com git inicializado.
+    :rtype: Path
+    """
+    path = tmp_path_factory.mktemp("git_project")
+    (path / "README.md").write_text(
+        "# Git Test Project\n\nProjeto de teste com repositório git inicializado.\n"
+        "\n## Descrição\n\nUsado para testes de extração de informações git.\n"
+        "\nCom mais de trinta palavras para passar no threshold do analisador.\n"
+    )
+    (path / "main.py").write_text('"""Main module."""\n\nprint("hello")\n')
+    env = {"GIT_CONFIG_NOSYSTEM": "1", "HOME": str(path), "PATH": "/usr/bin:/bin"}
+    subprocess.run(["git", "init"], cwd=path, check=True, capture_output=True, env=env)
+    subprocess.run(
+        ["git", "config", "user.email", "test@test.com"],
+        cwd=path, check=True, capture_output=True, env=env,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Test User"],
+        cwd=path, check=True, capture_output=True, env=env,
+    )
+    subprocess.run(["git", "add", "."], cwd=path, check=True, capture_output=True, env=env)
+    subprocess.run(
+        ["git", "commit", "-m", "initial commit"],
+        cwd=path, check=True, capture_output=True, env=env,
+    )
     return path
 
 
