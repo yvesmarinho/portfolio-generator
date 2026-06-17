@@ -11,18 +11,16 @@
 
 ## 🔵 Pendente - SpecKit Workflow
 
-- [ ] **SPEC-02**: Executar `speckit.specify` para gerar spec.md
-  - Prioridade: P0
-  - Dependência: SPEC-01
-  - Referência: `.specify/`
+- [x] **SPEC-02**: Executar `speckit.specify` para gerar spec.md (2026-06-17)
+  - Resultado: `specs/001-portfolio-gen-spec/spec.md` — 4 user stories, 16 FR, 8 SC
+  - Checklist: `specs/001-portfolio-gen-spec/checklists/requirements.md` — ✅ PASSOU
 
-- [ ] **SPEC-03**: Executar `speckit.plan` para gerar plano de implementação
-  - Prioridade: P0
-  - Dependência: SPEC-02
+- [x] **SPEC-03**: Executar `speckit.plan` para gerar plano de implementação (2026-06-17)
+  - Resultado: `specs/001-portfolio-gen-spec/plan.md` + `research.md` + `contracts/` + `quickstart.md`
+  - Constitution Check: ✅ APROVADO — 6/6 princípios satisfeitos
 
-- [ ] **SPEC-04**: Executar `speckit.tasks` para gerar tarefas detalhadas
-  - Prioridade: P0
-  - Dependência: SPEC-03
+- [x] **SPEC-04**: Executar `speckit.tasks` para gerar tarefas detalhadas (2026-06-17)
+  - Resultado: `specs/001-portfolio-gen-spec/tasks.md` — 53 tasks em 8 phases, organizadas por US
 
 - [ ] **SPEC-05**: Executar `speckit.validate` para validação de qualidade
   - Prioridade: P1
@@ -91,6 +89,12 @@
   - Session-index e session-time inicializados
   - Memory system criado (.memory/)
   - Regras Copilot carregadas
+
+- [x] **SPEC-01b**: Architecture debate documentado (2026-06-17)
+  - Resultado: `docs/debates/architecture-debate-portfolio-generator.md` — 6 debates, decisões tomadas
+
+- [x] **SPEC-01c**: Project Constitution criada (2026-06-17)
+  - Resultado: `.specify/memory/constitution.md` — v1.0.0, 6 princípios, governance definida
 
 - [x] **SPEC-01**: Atualizar `objetivo.yaml` com decisões do questionário (2026-05-18T21:11:00Z)
   - Especificação completa implementada

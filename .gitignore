@@ -61,3 +61,7 @@ Thumbs.db
 *.log
 logs/
 !scripts/logs/.gitkeep
+
+# portfolio-gen output
+output/
+!output/.gitkeep

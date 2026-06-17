@@ -1,0 +1,113 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "portfolio-gen"
+version = "1.0.0"
+description = "CLI tool for automated project cataloging — scans DevOps directories and generates a structured JSON portfolio"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Yves Marinho", email = "yvesmarinho@gmail.com" }]
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.1",
+    "rich>=13.0",
+    "loguru>=0.7",
+    "pandas>=2.2",
+    "gitpython>=3.1",
+    "pygments>=2.17",
+    "tree-sitter>=0.21",
+    "pyyaml>=6.0",
+    "jsonschema>=4.21",
+    "anthropic>=0.25",
+    "chardet>=5.2",
+]
+
+[project.scripts]
+portfolio-gen = "cli.main:cli"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/scanner",
+    "src/extractor",
+    "src/analyzer",
+    "src/generator",
+    "src/cli",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "black>=24.0",
+    "ruff>=0.4",
+    "mypy>=1.10",
+    "bandit>=1.7",
+    "safety>=3.0",
+    "pre-commit>=3.7",
+    "types-pyyaml>=6.0",
+    "types-jsonschema>=4.21",
+    "pandas-stubs>=2.2",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "TCH"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["scanner", "extractor", "analyzer", "generator", "cli"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = false
+warn_return_any = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = ["git.*", "tree_sitter.*", "anthropic.*", "chardet.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Módulos internos ainda não implementados (criados nas phases 2-7)
+module = [
+    "scanner.directory_scanner",
+    "extractor.metadata_extractor",
+    "analyzer.project_analyzer",
+    "generator.portfolio_generator",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=src --cov-report=term-missing --cov-fail-under=0"
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = ["tests/*", "src/cli/main.py"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
+
+[tool.bandit]
+targets = ["src"]
+skips = ["B101"]
