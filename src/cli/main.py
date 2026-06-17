@@ -10,6 +10,7 @@ Subcomandos:
 """
 from __future__ import annotations
 
+import json
 import os
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -173,7 +174,7 @@ def scan(
     }
     portfolio = gen.build_portfolio(results, meta)
 
-    _print_scan_summary(portfolio, skipped, duration, dry_run)
+    _print_scan_summary(portfolio, skipped, duration, dry_run, ai_min_words=ai_min_words)
 
     if skipped > 0:
         console.print(
@@ -205,15 +206,35 @@ def _print_scan_summary(
     skipped: int,
     duration: float,
     dry_run: bool,
+    ai_min_words: int = 30,
 ) -> None:
-    """Exibe sumário do scan em tabela Rich."""
+    """Exibe sumário do scan em tabela Rich (T039: tamanho JSON e elegíveis para IA)."""
     total = int(str(portfolio.get("total_projects") or 0))
+
+    projects = portfolio.get("projects", [])
+    ai_eligible = 0
+    if isinstance(projects, list):
+        ai_eligible = sum(
+            1
+            for p in projects
+            if isinstance(p, dict)
+            and int(str(p.get("_readme_word_count", 0) or 0)) < ai_min_words
+        )
+
+    try:
+        json_bytes = len(json.dumps(portfolio, default=str).encode("utf-8"))
+        json_size_str = f"{json_bytes / 1024:.1f} KB"
+    except Exception:
+        json_size_str = "—"
+
     table = Table(title="Resultado do Scan", show_header=True, header_style="bold cyan")
     table.add_column("Métrica", style="dim")
     table.add_column("Valor", justify="right")
     table.add_row("Projetos catalogados", str(total))
     table.add_row("Projetos pulados", str(skipped))
     table.add_row("Duração", f"{duration:.2f}s")
+    table.add_row("Tamanho estimado (JSON)", json_size_str)
+    table.add_row("Elegíveis para IA", str(ai_eligible))
     if dry_run:
         table.add_row("Modo", "[yellow]dry-run[/yellow]")
     console.print(table)
