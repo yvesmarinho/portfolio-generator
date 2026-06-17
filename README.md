@@ -6,8 +6,8 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Code Style](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
-**Domínio**: programming | **Linguagem**: python  
-**Criado em**: 2026-05-18  
+**Domínio**: programming | **Linguagem**: python
+**Criado em**: 2026-05-18
 **Status**: 🟡 Em desenvolvimento (MVP)
 
 ---
@@ -58,28 +58,35 @@ cd portfolio-generator
 
 # Criar ambiente virtual
 uv venv
-source .venv/bin/activate  # Linux/Mac
-# ou .venv\Scripts\activate  # Windows
+source .venv/bin/activate  # Linux/macOS
 
-# Instalar dependências (quando pyproject.toml estiver pronto)
+# Instalar dependências
 uv pip install -e ".[dev]"
+
+# Verificar instalação
+portfolio-gen --version
 ```
 
 ### Uso Básico
 
 ```bash
-# Gerar portfólio (após implementação)
-portfolio-gen scan /caminho/para/projetos
+# Prévia sem gravar arquivo (dry-run)
+portfolio-gen scan --dry-run
 
-# Modo verbose
-portfolio-gen scan /caminho/para/projetos -vv
+# Escanear projetos e gerar portfólio JSON
+portfolio-gen scan --path ~/Documentos/DevOps/
 
-# Exportar em YAML
-portfolio-gen scan /caminho/para/projetos --format yaml
+# Escanear com 4 workers paralelos
+portfolio-gen scan --workers 4
 
-# Dry-run (sem gerar arquivo)
-portfolio-gen scan /caminho/para/projetos --dry-run
+# Validar portfólio gerado
+portfolio-gen validate output/portfolio-2026-06-17.json
+
+# Validar com detalhes
+portfolio-gen validate output/portfolio-2026-06-17.json --verbose
 ```
+
+> Guia completo: [docs/quickstart.md](docs/quickstart.md)
 
 ---
 
@@ -89,49 +96,44 @@ portfolio-gen scan /caminho/para/projetos --dry-run
 
 | Componente | Tecnologia |
 |------------|------------|
-| Linguagem | Python 3.12+ |
+| Linguagem | Python 3.13+ |
 | Package Manager | uv |
 | CLI Framework | click |
 | Logging | loguru |
 | Progress/UI | rich |
 | Linting | ruff |
-| Testing | pytest (cobertura ≥90%) |
+| Validação de schema | jsonschema |
+| Detecção de linguagem | pygments |
+| Info Git | gitpython |
+| Testing | pytest + coverage (≥96%) |
 
 ### Estrutura de Módulos
 
 ```
 src/
-├── core/                    # Lógica de negócio
-│   ├── scanner.py          # Varredura de diretórios
-│   ├── extractor.py        # Extração de metadados
-│   ├── analyzer.py         # Análise de README/código
-│   └── generator.py        # Geração de JSON
-├── api/                     # Interface CLI
-│   └── cli.py              # Comandos do portfolio-gen
-└── shared/                  # Utilitários
-    ├── logging.py          # Configuração loguru
-    ├── validators.py       # Validação de entrada
-    └── config.py           # Gerenciamento de configs
+├── analyzer/               # Análise de README e metadados textuais
+│   └── readme_parser.py
+├── cli/                    # Interface de linha de comando
+│   ├── main.py             # Subcomandos: scan, validate, report
+│   └── _logging.py         # Configuração loguru
+├── extractor/              # Extração de metadados por projeto
+│   ├── git_extractor.py
+│   ├── language_extractor.py
+│   ├── metadata_extractor.py
+│   └── metrics_extractor.py
+├── generator/              # Geração e validação do JSON de saída
+│   └── portfolio_generator.py
+└── scanner/                # Varredura de diretórios com scope guard
+    └── directory_scanner.py
 ```
 
-### Bibliotecas Principais
+### Decisões de Arquitetura
 
-```python
-# Análise e processamento
-pandas==2.2.0           # Manipulação de dados
-gitpython==3.1.43      # Informações Git
-tree-sitter==0.22.0    # Parser de código
-pygments==2.17.2       # Detecção de linguagens
+Consulte os ADRs em [docs/architecture/adr/](docs/architecture/adr/):
 
-# CLI e UX
-click==8.1.7           # Framework CLI
-loguru==0.7.2          # Logging
-rich==13.7.0           # Progress bars
-
-# Parsing
-pyyaml==6.0.1          # YAML
-tomli==2.0.1           # TOML
-```
+- **ADR-001**: ProcessPoolExecutor vs asyncio para paralelismo
+- **ADR-002**: Cascata de 3 níveis para detecção de linguagem
+- **ADR-003**: Estrutura JSON aninhada vs. plana
 
 ---
 
@@ -273,5 +275,5 @@ MIT License - Ver [LICENSE](LICENSE)
 
 ---
 
-**Status do Projeto**: 🟡 MVP em desenvolvimento  
+**Status do Projeto**: 🟡 MVP em desenvolvimento
 **Última atualização**: 2026-05-18

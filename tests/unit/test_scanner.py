@@ -236,6 +236,47 @@ class TestDirectoryScanner:
         assert "corrupted_project" not in names
 
 
+class TestScannerCoverage:
+    """Cobertura T048: linhas 45, 52-54, 101, 110-112, 120, 124-125 do directory_scanner."""
+
+    def test_validate_path_non_path_returns_false(self) -> None:
+        """validate_path_scope com não-Path retorna False (linha 45)."""
+        assert validate_path_scope("nao-e-um-path") is False  # type: ignore[arg-type]
+
+    def test_validate_path_resolve_exception_returns_false(self) -> None:
+        """Exceção em path.resolve() → validate_path_scope retorna False (linhas 52-54)."""
+        with patch.object(Path, "resolve", side_effect=OSError("cannot resolve")):
+            result = validate_path_scope(ALLOWED_SCOPE / "projeto")
+        assert result is False
+
+    def test_list_projects_non_path_returns_empty(self) -> None:
+        """list_projects com não-Path retorna [] (linha 101)."""
+        scanner = DirectoryScanner({"root_path": str(ALLOWED_SCOPE), "excluded_dirs": [], "max_depth": 1})
+        assert scanner.list_projects("nao-e-um-path") == []  # type: ignore[arg-type]
+
+    def test_list_projects_scan_dir_exception_returns_empty(self, scan_target: Path) -> None:
+        """Exceção interna em _scan_dir → list_projects retorna [] (linhas 110-112)."""
+        scanner = DirectoryScanner({"root_path": str(scan_target), "excluded_dirs": [], "max_depth": 1})
+        with patch.object(scanner, "_scan_dir", side_effect=RuntimeError("forced")):
+            result = scanner.list_projects(scan_target)
+        assert result == []
+
+    def test_file_in_root_skipped_in_scan_dir(self, scan_target: Path) -> None:
+        """Arquivo regular em root é pulado em _scan_dir (linha 120)."""
+        (scan_target / "arquivo_regular.txt").write_text("not a directory")
+        scanner = DirectoryScanner({"root_path": str(scan_target), "excluded_dirs": [], "max_depth": 1})
+        result = scanner.list_projects(scan_target)
+        names = [p.name for p in result]
+        assert "arquivo_regular.txt" not in names
+
+    def test_scan_dir_permission_error_returns_empty(self, scan_target: Path) -> None:
+        """PermissionError em iterdir() → _scan_dir retorna [] (linhas 124-125)."""
+        scanner = DirectoryScanner({"root_path": str(scan_target), "excluded_dirs": [], "max_depth": 1})
+        with patch("pathlib.Path.iterdir", side_effect=PermissionError("sem permissão")):
+            result = scanner.list_projects(scan_target)
+        assert result == []
+
+
 class TestScanProjectBugReportIntegration:
     """T030 (US2): scan_project() com bug_report_dir — testes de regressão."""
 

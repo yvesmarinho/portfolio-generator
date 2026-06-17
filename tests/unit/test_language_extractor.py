@@ -6,8 +6,9 @@ TDD: escritos ANTES da implementação.
 from __future__ import annotations
 
 from pathlib import Path
+from unittest.mock import patch
 
-from extractor.language_extractor import LanguageInfo, detect_language
+from extractor.language_extractor import LanguageInfo, _iter_source_files, detect_language
 
 
 class TestLanguageInfo:
@@ -69,3 +70,47 @@ class TestDetectLanguage:
         """primary='Unknown' implica confidence=0.0."""
         result = detect_language(Path("/nonexistent_xyzabc"))
         assert result.confidence == 0.0
+
+
+class TestLanguageExtractorCoverage:
+    """Cobertura T048: exception paths, pygments e _iter_source_files."""
+
+    def test_detect_language_exception_returns_unknown(self, tmp_path: Path) -> None:
+        """Exceção em _detect_by_extension → detect_language retorna Unknown (linhas 102-104)."""
+        (tmp_path / "main.py").write_text("print('hello')")
+        with patch("extractor.language_extractor._detect_by_extension", side_effect=RuntimeError("forced")):
+            result = detect_language(tmp_path)
+        assert result.primary == "Unknown"
+        assert result.confidence == 0.0
+
+    def test_iter_source_files_permission_error_returns_empty(self, tmp_path: Path) -> None:
+        """PermissionError em rglob → _iter_source_files retorna [] (linhas 146-147)."""
+        with patch("pathlib.Path.rglob", side_effect=PermissionError("sem permissão")):
+            result = _iter_source_files(tmp_path)
+        assert result == []
+
+    def test_mixed_project_triggers_confirm_with_pygments(self, tmp_path: Path) -> None:
+        """Projeto misto com confiança < 0.60 aciona _confirm_with_pygments (linhas 131, 158-187)."""
+        for i in range(2):
+            (tmp_path / f"script_{i}.py").write_text(f"print({i})")
+        for i in range(2):
+            (tmp_path / f"app_{i}.js").write_text(f"console.log({i})")
+        for i in range(2):
+            (tmp_path / f"main_{i}.go").write_text("package main")
+        for i in range(2):
+            (tmp_path / f"type_{i}.ts").write_text(f"const x: number = {i}")
+        (tmp_path / "data.xyz").write_text("unknown extension")
+        result = detect_language(tmp_path)
+        assert isinstance(result, LanguageInfo)
+        assert result.primary != ""
+        assert 0.0 <= result.confidence <= 1.0
+
+    def test_confirm_with_pygments_exception_returns_original(self, tmp_path: Path) -> None:
+        """Exceção genérica no pygments → retorna info original (linhas 188-191)."""
+        from extractor.language_extractor import _confirm_with_pygments
+
+        (tmp_path / "main.py").write_text("print('hello')")
+        with patch("pygments.lexers.guess_lexer_for_filename", side_effect=RuntimeError("pygments quebrado")):
+            result = _confirm_with_pygments(tmp_path, "Python", ["Go"], 0.5)
+        assert result.primary == "Python"
+        assert result.confidence == 0.5

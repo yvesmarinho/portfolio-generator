@@ -6,6 +6,7 @@ TDD: escritos ANTES da implementação.
 from __future__ import annotations
 
 from pathlib import Path
+from unittest.mock import patch
 
 from extractor.metrics_extractor import ProjectMetrics, extract_metrics
 
@@ -67,3 +68,24 @@ class TestExtractMetrics:
         """no_readme_project tem pelo menos 1 arquivo (script.py)."""
         result = extract_metrics(no_readme_project)
         assert result.file_count >= 1
+
+
+class TestMetricsExtractorCoverage:
+    """Cobertura T048: exception paths em extract_metrics e _compute_metrics (linhas 49-51, 84-85)."""
+
+    def test_exception_in_compute_returns_zeros(self, tmp_path: Path) -> None:
+        """_compute_metrics lançando exceção → extract_metrics retorna zeros (linhas 49-51)."""
+        (tmp_path / "main.py").write_text("print('hello')")
+        with patch("extractor.metrics_extractor._compute_metrics", side_effect=RuntimeError("forced")):
+            result = extract_metrics(tmp_path)
+        assert result.file_count == 0
+        assert result.size_bytes == 0
+        assert result.line_count_estimated == 0
+
+    def test_rglob_permission_error_returns_partial_metrics(self, tmp_path: Path) -> None:
+        """PermissionError em rglob dentro de _compute_metrics é tratado (linhas 84-85)."""
+        (tmp_path / "main.py").write_text("print('hello')")
+        with patch("pathlib.Path.rglob", side_effect=PermissionError("sem permissão")):
+            result = extract_metrics(tmp_path)
+        assert isinstance(result, ProjectMetrics)
+        assert result.file_count == 0
