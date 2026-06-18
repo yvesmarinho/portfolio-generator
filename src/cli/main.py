@@ -551,9 +551,140 @@ def report(file: str, output_format: str, top: int | None, sort_by: str) -> None
     \b
       portfolio-gen report output/portfolio-2026-06-17.json
       portfolio-gen report output/portfolio-2026-06-17.json --format csv --top 20
+      portfolio-gen report output/portfolio-2026-06-17.json --sort-by size --top 10
     """
-    console.print("[yellow]⚠ Módulo report ainda não implementado (Phase 6)[/yellow]")
-    console.print(f"  file={file}, format={output_format}, top={top}")
+    import csv
+    import sys
+
+    from rich.panel import Panel
+
+    file_path = Path(file)
+    if not file_path.exists():
+        console.print(f"[red]Erro: arquivo não encontrado: {file}[/red]")
+        raise SystemExit(1)
+
+    try:
+        data = json.loads(file_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        console.print(f"[red]Erro ao ler {file_path.name}: {exc}[/red]")
+        raise SystemExit(1) from None
+
+    projects: list[dict[str, object]] = data.get("projects", []) if isinstance(data, dict) else []
+
+    sort_keys: dict[str, object] = {
+        "name": lambda p: str(p.get("name", "")).lower(),
+        "language": lambda p: str((p.get("language") or {}).get("primary", "")).lower(),
+        "size": lambda p: int((p.get("metrics") or {}).get("size_bytes", 0) or 0),
+        "date": lambda p: str(p.get("last_modified", "")),
+    }
+    reverse_sort = sort_by in ("size", "date")
+    projects = sorted(projects, key=sort_keys[sort_by], reverse=reverse_sort)  # type: ignore[arg-type]
+
+    if top is not None:
+        projects = projects[:top]
+
+    if output_format == "json":
+        console.print_json(json.dumps({"projects": projects}, default=str))
+        raise SystemExit(0)
+
+    if output_format == "csv":
+        writer = csv.writer(sys.stdout)
+        writer.writerow([
+            "name", "type", "language", "git", "branch",
+            "status", "file_count", "size_bytes", "last_modified", "technologies",
+        ])
+        for p in projects:
+            lang = p.get("language") or {}
+            git = p.get("git") or {}
+            metrics = p.get("metrics") or {}
+            techs = p.get("technologies") or []
+            writer.writerow([
+                p.get("name", ""),
+                p.get("type", ""),
+                (lang.get("primary", "") if isinstance(lang, dict) else ""),
+                ("sim" if (git.get("initialized") if isinstance(git, dict) else False) else "não"),
+                (git.get("branch", "") if isinstance(git, dict) else ""),
+                p.get("status", ""),
+                (metrics.get("file_count", 0) if isinstance(metrics, dict) else 0),
+                (metrics.get("size_bytes", 0) if isinstance(metrics, dict) else 0),
+                p.get("last_modified", ""),
+                ", ".join(str(t) for t in techs) if isinstance(techs, list) else "",
+            ])
+        raise SystemExit(0)
+
+    # format=table (default)
+    generated_at = str(data.get("generated_at", ""))[:19].replace("T", " ")
+    scan_path = str(data.get("scan_path", ""))
+    total = int(str(data.get("total_projects") or 0))
+    skipped = int(str(data.get("skipped_projects") or 0))
+    duration = float(str(data.get("scan_duration_seconds") or 0))
+
+    header = (
+        f"[bold]Portfolio:[/bold] {scan_path}  "
+        f"[dim]|[/dim]  [bold]Projetos:[/bold] {total}  "
+        f"[dim]|[/dim]  [bold]Pulados:[/bold] {skipped}  "
+        f"[dim]|[/dim]  [bold]Duração:[/bold] {duration:.1f}s  "
+        f"[dim]|[/dim]  [bold]Gerado:[/bold] {generated_at}"
+    )
+    console.print(Panel(header, title=f"[bold cyan]{file_path.name}[/bold cyan]", expand=False))
+
+    if top is not None:
+        console.print(f"[dim]Exibindo {len(projects)} de {total} projetos (--top {top})[/dim]")
+
+    table = Table(show_header=True, header_style="bold cyan", row_styles=["", "dim"])
+    table.add_column("#", style="dim", justify="right", width=3)
+    table.add_column("Nome", min_width=24)
+    table.add_column("Tipo", min_width=14)
+    table.add_column("Linguagem", min_width=12)
+    table.add_column("Git", justify="center", width=5)
+    table.add_column("Branch", min_width=8)
+    table.add_column("Status", width=10)
+    table.add_column("Arquivos", justify="right", width=8)
+    table.add_column("Tamanho", justify="right", width=9)
+
+    def _fmt_size(b: object) -> str:
+        n = int(str(b or 0))
+        if n >= 1_073_741_824:
+            return f"{n / 1_073_741_824:.1f} GB"
+        if n >= 1_048_576:
+            return f"{n / 1_048_576:.1f} MB"
+        if n >= 1024:
+            return f"{n / 1024:.0f} KB"
+        return f"{n} B"
+
+    status_style = {"active": "green", "archived": "yellow", "unknown": "dim"}
+
+    for i, p in enumerate(projects, 1):
+        lang = p.get("language") or {}
+        git = p.get("git") or {}
+        metrics = p.get("metrics") or {}
+        git_ok = bool(git.get("initialized") if isinstance(git, dict) else False)
+        branch = str(git.get("branch", "") if isinstance(git, dict) else "")
+        status = str(p.get("status", "unknown"))
+        file_count = str(metrics.get("file_count", 0) if isinstance(metrics, dict) else 0)
+        size = _fmt_size(metrics.get("size_bytes", 0) if isinstance(metrics, dict) else 0)
+        primary_lang = str(lang.get("primary", "") if isinstance(lang, dict) else "")
+        proj_type = str(p.get("type", ""))
+        name = str(p.get("name", ""))
+
+        table.add_row(
+            str(i),
+            name,
+            proj_type,
+            primary_lang,
+            "[green]✓[/green]" if git_ok else "[dim]—[/dim]",
+            branch if git_ok else "",
+            f"[{status_style.get(status, 'dim')}]{status}[/{status_style.get(status, 'dim')}]",
+            file_count,
+            size,
+        )
+
+    console.print(table)
+    console.print(
+        f"[dim]{len(projects)} projeto(s) | ordenado por: {sort_by}"
+        + (f" | top {top}" if top else "")
+        + "[/dim]"
+    )
     raise SystemExit(0)
 
 
