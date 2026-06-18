@@ -151,8 +151,14 @@ def init(path: str, max_depth: int, dry_run: bool) -> None:
             return
         try:
             entries = sorted(
-                e for e in current.iterdir()
-                if e.is_dir() and e.name not in DEFAULT_EXCLUDED and e.name not in existing_excluded
+                (
+                    e for e in current.iterdir()
+                    if e.is_dir()
+                    and not e.name.startswith(".")
+                    and e.name not in DEFAULT_EXCLUDED
+                    and e.name not in existing_excluded
+                ),
+                key=lambda e: e.name.lower(),
             )
         except PermissionError:
             return

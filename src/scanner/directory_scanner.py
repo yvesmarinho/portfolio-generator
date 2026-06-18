@@ -129,10 +129,10 @@ class DirectoryScanner:
 
         projects: list[Path] = []
         try:
-            for entry in sorted(root.iterdir()):
+            for entry in sorted(root.iterdir(), key=lambda e: e.name.lower()):
                 if not entry.is_dir():
                     continue
-                if entry.name in self._excluded:
+                if entry.name.startswith(".") or entry.name in self._excluded:
                     continue
                 if (entry / MARKER_FILE).exists():
                     projects.append(entry)
