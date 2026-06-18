@@ -130,14 +130,12 @@ def init(path: str, max_depth: int, dry_run: bool) -> None:
     if dry_run:
         console.print("[yellow]dry-run: nenhum arquivo será criado.[/yellow]")
 
-    console.print(
-        f"[bold cyan]portfolio-gen init[/bold cyan] → [cyan]{scan_path}[/cyan]\n"
-        "[dim]Para cada pasta:\n"
-        "  [bold][y][/bold] esta pasta É um projeto (marca e não entra dentro)\n"
-        "  [bold][r][/bold] entrar dentro para buscar sub-projetos\n"
-        "  [bold][s][/bold] pular esta subárvore inteira\n"
-        "  [bold][e][/bold] excluir do scan permanentemente[/dim]\n"
-    )
+    console.print(f"\n[bold cyan]portfolio-gen init[/bold cyan] → [cyan]{scan_path}[/cyan]\n")
+    console.print("[bold]Opções para cada pasta:[/bold]")
+    console.print("  [green bold]y[/green bold]  →  esta pasta É um projeto único (marca e não entra dentro)")
+    console.print("  [cyan bold]r[/cyan bold]  →  entrar dentro para buscar sub-projetos  [dim](padrão)[/dim]")
+    console.print("  [yellow bold]s[/yellow bold]  →  pular esta subárvore inteira")
+    console.print("  [red bold]e[/red bold]  →  excluir permanentemente do scan\n")
     logger.info(f"Init iniciado em '{scan_path}' (max_depth={max_depth}, dry_run={dry_run})")
 
     # Carrega exclusões já existentes para pular pastas já excluídas
@@ -162,17 +160,14 @@ def init(path: str, max_depth: int, dry_run: bool) -> None:
         for entry in entries:
             rel = entry.relative_to(scan_path)
             already = (entry / MARKER_FILE).exists()
-            label = f"[cyan]{rel}/[/cyan]"
-            if already:
-                label += " [dim](já marcado)[/dim]"
-
+            suffix = "  [dim](já marcado)[/dim]" if already else ""
+            console.print(f"\n[bold]📁 {rel}/[/bold]{suffix}")
             logger.debug(f"Init: inspecionando '{rel}/'")
-            console.print(label)
             choice = Prompt.ask(
-                "  [y] projeto  [r] entrar  [s] pular  [e] excluir",
+                "  Opção",
                 choices=["y", "r", "s", "e"],
                 default="r",
-                show_choices=False,
+                show_choices=True,
             )
 
             if choice == "y":
@@ -190,7 +185,7 @@ def init(path: str, max_depth: int, dry_run: bool) -> None:
                     )
                 marked.append(entry)
                 logger.info(f"Init: '{rel}/' marcado como projeto raiz")
-                console.print(f"  [green]✓ Marcado:[/green] {marker.name}\n")
+                console.print("  [green]✓ Projeto marcado[/green]")
             elif choice == "r":
                 logger.debug(f"Init: entrando em '{rel}/'")
                 _walk(entry, depth + 1)
@@ -200,14 +195,11 @@ def init(path: str, max_depth: int, dry_run: bool) -> None:
                     _save_exclusion(entry.name, EXCLUSIONS_PATH)
                 excluded_added.append(entry)
                 logger.info(f"Init: '{rel}/' adicionado às exclusões permanentes")
-                console.print(
-                    f"  [red]✗ Excluído do scan:[/red] {entry.name}"
-                    f" → {EXCLUSIONS_PATH}\n"
-                )
+                console.print("  [red]✗ Excluído do scan permanentemente[/red]")
             else:  # "s"
                 skipped.append(entry)
                 logger.debug(f"Init: '{rel}/' subárvore ignorada")
-                console.print("  [dim]↷ Subárvore ignorada[/dim]\n")
+                console.print("  [dim]↷ Subárvore ignorada[/dim]")
 
     _walk(scan_path, depth=0)
 
