@@ -31,6 +31,33 @@ console = Console()
 DEFAULT_SCAN_PATH = "/home/yves_marinho/Documentos/DevOps/"
 ALLOWED_SCOPE = "/home/yves_marinho/Documentos/DevOps/"
 SCHEMA_PATH = Path("schemas/portfolio-schema-v1.json")
+EXCLUSIONS_PATH = Path("config/scan-exclusions.json")
+
+
+def _load_exclusions(exclusions_path: Path) -> dict[str, list[str]]:
+    """Carrega config/scan-exclusions.json; retorna estrutura vazia em caso de erro."""
+    try:
+        if exclusions_path.exists():
+            data = json.loads(exclusions_path.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                return data
+    except (OSError, json.JSONDecodeError):
+        pass
+    return {"excluded_dirs": []}
+
+
+def _save_exclusion(dir_name: str, exclusions_path: Path) -> None:
+    """Adiciona dir_name à lista excluded_dirs em config/scan-exclusions.json."""
+    try:
+        data = _load_exclusions(exclusions_path)
+        excluded: list[str] = data.get("excluded_dirs", [])
+        if dir_name not in excluded:
+            excluded.append(dir_name)
+            data["excluded_dirs"] = excluded
+            exclusions_path.parent.mkdir(parents=True, exist_ok=True)
+            exclusions_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    except OSError as exc:
+        console.print(f"[yellow]Aviso: não foi possível salvar exclusão '{dir_name}': {exc}[/yellow]")
 
 
 @click.group()
@@ -104,17 +131,26 @@ def init(path: str, max_depth: int, dry_run: bool) -> None:
 
     console.print(
         f"[bold cyan]portfolio-gen init[/bold cyan] → [cyan]{scan_path}[/cyan]\n"
-        "[dim]Para cada pasta: [y] marcar | [n] ignorar (recursão) | [s] pular subárvore[/dim]\n"
+        "[dim]Para cada pasta: "
+        "[y] marcar projeto | [n] ignorar (recursão) | [s] pular subárvore | [e] excluir do scan[/dim]\n"
     )
+
+    # Carrega exclusões já existentes para pular pastas já excluídas
+    exclusions_data = _load_exclusions(EXCLUSIONS_PATH)
+    existing_excluded: set[str] = set(exclusions_data.get("excluded_dirs", []))
 
     marked: list[Path] = []
     skipped: list[Path] = []
+    excluded_added: list[Path] = []
 
     def _walk(current: Path, depth: int) -> None:
         if depth >= max_depth:
             return
         try:
-            entries = sorted(e for e in current.iterdir() if e.is_dir() and e.name not in DEFAULT_EXCLUDED)
+            entries = sorted(
+                e for e in current.iterdir()
+                if e.is_dir() and e.name not in DEFAULT_EXCLUDED and e.name not in existing_excluded
+            )
         except PermissionError:
             return
 
@@ -127,8 +163,8 @@ def init(path: str, max_depth: int, dry_run: bool) -> None:
 
             console.print(label)
             choice = Prompt.ask(
-                "  Raiz de projeto?",
-                choices=["y", "n", "s"],
+                "  Ação?",
+                choices=["y", "n", "s", "e"],
                 default="n",
                 show_choices=True,
             )
@@ -150,6 +186,15 @@ def init(path: str, max_depth: int, dry_run: bool) -> None:
                 console.print(f"  [green]✓ Marcado:[/green] {marker.name}\n")
             elif choice == "n":
                 _walk(entry, depth + 1)
+            elif choice == "e":
+                existing_excluded.add(entry.name)
+                if not dry_run:
+                    _save_exclusion(entry.name, EXCLUSIONS_PATH)
+                excluded_added.append(entry)
+                console.print(
+                    f"  [red]✗ Excluído do scan:[/red] {entry.name}"
+                    f" → {EXCLUSIONS_PATH}\n"
+                )
             else:
                 skipped.append(entry)
                 console.print("  [dim]↷ Subárvore ignorada[/dim]\n")
@@ -157,8 +202,9 @@ def init(path: str, max_depth: int, dry_run: bool) -> None:
     _walk(scan_path, depth=0)
 
     console.print("\n[bold]Resumo:[/bold]")
-    console.print(f"  Marcados : [green]{len(marked)}[/green]")
-    console.print(f"  Ignorados: [dim]{len(skipped)}[/dim]")
+    console.print(f"  Marcados      : [green]{len(marked)}[/green]")
+    console.print(f"  Excluídos     : [red]{len(excluded_added)}[/red]")
+    console.print(f"  Ignorados     : [dim]{len(skipped)}[/dim]")
     if dry_run:
         console.print("[yellow]dry-run: nenhum arquivo criado.[/yellow]")
     raise SystemExit(0)
@@ -224,9 +270,10 @@ def scan(
 
     console.print(f"[bold cyan]portfolio-gen scan[/bold cyan] → [cyan]{scan_path}[/cyan]")
 
+    exclusions = _load_exclusions(EXCLUSIONS_PATH)
     config: dict[str, object] = {
         "root_path": str(scan_path),
-        "excluded_dirs": [],
+        "excluded_dirs": exclusions.get("excluded_dirs", []),
         "max_depth": 3,
     }
     scanner = DirectoryScanner(config)
