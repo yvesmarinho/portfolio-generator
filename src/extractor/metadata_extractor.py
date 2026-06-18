@@ -144,6 +144,7 @@ def scan_project(
     """
     if not isinstance(path, Path) or not path.exists():
         return None
+    logger.info(f"Escaneando: {path.name}")
     try:
         lang_info = detect_language(path)
         git_info = extract_git_info(path)
@@ -196,7 +197,7 @@ def scan_project(
             git_dict["last_commit_author"] = git_info.last_commit_author
             git_dict["commit_count"] = git_info.commit_count
 
-        return {
+        result = {
             "name": path.name,
             "path": str(path),
             "type": project_type,
@@ -210,6 +211,14 @@ def scan_project(
             "last_modified": _get_last_modified(path),
             "_readme_word_count": readme_words,
         }
+        logger.info(
+            f"Concluído: {path.name}"
+            f" | tipo={project_type}"
+            f" | lang={lang_info.primary}"
+            f" | git={'sim' if git_info else 'não'}"
+            f" | desc={description_source}"
+        )
+        return result
     except Exception as exc:
         logger.warning(f"Projeto '{path}' pulado: {type(exc).__name__}: {exc}")
         if bug_report_dir is not None:

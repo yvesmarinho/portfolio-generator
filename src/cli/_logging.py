@@ -54,6 +54,7 @@ def configure_logging(verbose: bool = False, log_dir: Path | None = None) -> Non
             encoding="utf-8",
             rotation="1 day",
             retention="7 days",
+            enqueue=True,
         )
     except Exception as exc:
         print(f"Aviso: não foi possível criar arquivo de log: {exc}", file=sys.stderr)

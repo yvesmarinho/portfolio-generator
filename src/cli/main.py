@@ -281,6 +281,7 @@ def scan(
         raise SystemExit(1)
 
     console.print(f"[bold cyan]portfolio-gen scan[/bold cyan] → [cyan]{scan_path}[/cyan]")
+    logger.info(f"Scan iniciado em '{scan_path}' (no_ai={no_ai}, dry_run={dry_run})")
 
     exclusions = _load_exclusions(EXCLUSIONS_PATH)
     config: dict[str, object] = {
@@ -292,12 +293,14 @@ def scan(
     project_paths = scanner.list_projects(scan_path)
 
     if not project_paths:
+        logger.warning("Nenhum projeto encontrado — execute portfolio-gen init")
         console.print(
             "[yellow]Nenhum projeto encontrado.[/yellow]\n"
             "[dim]Execute [bold]portfolio-gen init[/bold] para marcar raízes de projeto.[/dim]"
         )
         raise SystemExit(0)
 
+    logger.info(f"{len(project_paths)} projetos encontrados para escanear")
     console.print(f"[dim]{len(project_paths)} diretórios encontrados — iniciando extração...[/dim]")
 
     n_workers = workers if workers else min(4, os.cpu_count() or 1)
@@ -339,6 +342,10 @@ def scan(
                 progress.advance(task_id)
 
     duration = time.monotonic() - start_time
+    logger.info(
+        f"Extração concluída: {len(results)} projetos catalogados, "
+        f"{skipped} pulados, {duration:.2f}s"
+    )
 
     gen_config: dict[str, object] = {
         "schema_path": str(SCHEMA_PATH),
@@ -372,8 +379,10 @@ def scan(
 
     if gen.write_output(portfolio, output_path):
         console.print(f"[green]✓ Portfolio salvo em:[/green] {output_path}")
+        logger.info(f"Portfolio salvo em '{output_path}' — scan finalizado")
     else:
         console.print(f"[red]Erro ao salvar portfolio em {output_path}[/red]")
+        logger.error(f"Falha ao salvar portfolio em '{output_path}'")
         raise SystemExit(1)
 
     raise SystemExit(0 if skipped == 0 else 2)
