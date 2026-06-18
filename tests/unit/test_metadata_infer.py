@@ -229,6 +229,54 @@ class TestGetLastModified:
         assert "T" in result
 
 
+class TestScanProjectAIIntegration:
+    """Cobertura das linhas 183-189: bloco de integração IA em scan_project."""
+
+    def test_scan_project_no_ai_flag_skips_ai(self, tmp_path: Path) -> None:
+        """scan_project com no_ai=True não chama generate_summary."""
+        (tmp_path / "main.py").write_text("print('hello')")
+        config = {"no_ai": True, "ai_min_words": 30, "ai_max_tokens": 2000}
+        from unittest.mock import patch
+
+        with patch("extractor.metadata_extractor.generate_summary") as mock_gen:
+            result = scan_project(tmp_path, config=config)
+            mock_gen.assert_not_called()
+        assert result is not None
+
+    def test_scan_project_ai_sets_generated_source(self, tmp_path: Path) -> None:
+        """scan_project com IA disponível seta description_source='ai-generated'."""
+        (tmp_path / "main.py").write_text("print('hello')")
+        config = {"no_ai": False, "ai_min_words": 30, "ai_max_tokens": 2000}
+        from unittest.mock import patch
+
+        with patch("extractor.metadata_extractor.generate_summary", return_value="Descrição gerada."):
+            result = scan_project(tmp_path, config=config)
+        assert result is not None
+        assert result["description"] == "Descrição gerada."
+        assert result["description_source"] == "ai-generated"
+
+    def test_scan_project_ai_fails_no_readme_sets_unavailable(self, tmp_path: Path) -> None:
+        """scan_project sem README + IA falha → description_source='ai-unavailable'."""
+        (tmp_path / "main.py").write_text("print('hello')")
+        config = {"no_ai": False, "ai_min_words": 30, "ai_max_tokens": 2000}
+        from unittest.mock import patch
+
+        with patch("extractor.metadata_extractor.generate_summary", return_value=None):
+            result = scan_project(tmp_path, config=config)
+        assert result is not None
+        assert result["description_source"] == "ai-unavailable"
+
+    def test_scan_project_without_config_skips_ai(self, tmp_path: Path) -> None:
+        """scan_project sem config não tenta IA."""
+        (tmp_path / "main.py").write_text("print('hello')")
+        from unittest.mock import patch
+
+        with patch("extractor.metadata_extractor.generate_summary") as mock_gen:
+            result = scan_project(tmp_path)
+            mock_gen.assert_not_called()
+        assert result is not None
+
+
 class TestScanProjectGitPopulated:
     """Cobertura de scan_project com repositório git real (linhas 149-153)."""
 

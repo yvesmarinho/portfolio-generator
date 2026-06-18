@@ -135,7 +135,13 @@ def scan(
 
     n_workers = workers if workers else min(4, os.cpu_count() or 1)
     bug_dir = Path("docs/bugs")
-    scan_fn = partial(scan_project, bug_report_dir=bug_dir)
+    ai_config: dict[str, object] = {
+        "no_ai": no_ai,
+        "ai_min_words": ai_min_words,
+        "ai_max_tokens": ai_max_tokens,
+        "secrets_path": ".secrets/api_config.json",
+    }
+    scan_fn = partial(scan_project, bug_report_dir=bug_dir, config=ai_config)
     results: list[dict[str, object]] = []
     skipped = 0
     start_time = time.monotonic()

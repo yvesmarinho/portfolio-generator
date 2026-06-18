@@ -151,13 +151,13 @@ description: "Task list for portfolio-generator CLI implementation"
 
 ### Testes para IA (TDD)
 
-- [ ] T043 [P] `tests/unit/test_ai_summarizer.py` — mock do cliente Anthropic: gera descrição quando README ausente, retorna None quando `--no-ai`, retorna None quando API indisponível (exception mockada)
+- [x] T043 [P] `tests/unit/test_ai_summarizer.py` — mock do cliente Anthropic: gera descrição quando README ausente, retorna None quando `--no-ai`, retorna None quando API indisponível (exception mockada) ✅
 
 ### Implementação de IA
 
-- [ ] T044 Implementar `src/analyzer/ai_summarizer.py`: `generate_summary(project_data, config) → str | None`; lê credenciais de `.secrets/api_config.json`; `--no-ai` retorna None sem chamar API
-- [ ] T045 Integrar `ai_summarizer` no fluxo do extractor: verificar threshold duplo (word_count < 30 OU token_count > 2000 OU README ausente) antes de chamar IA
-- [ ] T046 Tratar falhas de API graciosamente: exception → description_source = "ai-unavailable", description = ""
+- [x] T044 Implementar `src/analyzer/ai_summarizer.py`: `generate_summary(project_data, config) → str | None`; lê credenciais de `.secrets/api_config.json`; `--no-ai` retorna None sem chamar API ✅
+- [x] T045 Integrar `ai_summarizer` no fluxo do extractor: verificar threshold duplo (word_count < 30 OU token_count > 2000 OU README ausente) antes de chamar IA ✅
+- [x] T046 Tratar falhas de API graciosamente: exception → description_source = "ai-unavailable", description = "" ✅
 
 **Checkpoint**: Scan de projeto sem README com IA configurada → description_source = "ai-generated" no JSON.
 

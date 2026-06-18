@@ -14,6 +14,7 @@ from typing import Any
 
 from loguru import logger
 
+from analyzer.ai_summarizer import generate_summary
 from analyzer.readme_parser import extract_description, parse_readme, token_count, word_count
 from extractor.git_extractor import GitInfo, extract_git_info
 from extractor.language_extractor import detect_language
@@ -48,16 +49,19 @@ class MetadataExtractor:
         """
         Inicializa o extrator com configuração fornecida.
 
-        :param config: Configuração com chaves: no_ai, ai_min_words, ai_max_tokens.
+        :param config: Configuração com chaves: no_ai, ai_min_words, ai_max_tokens, secrets_path.
         :type config: dict[str, Any]
 
         >>> e = MetadataExtractor({"no_ai": True, "ai_min_words": 30, "ai_max_tokens": 2000})
         >>> e is not None
         True
         """
-        self._no_ai = bool(config.get("no_ai", True))
-        self._ai_min_words = int(config.get("ai_min_words") or 30)
-        self._ai_max_tokens = int(config.get("ai_max_tokens") or 2000)
+        self._config = {
+            "no_ai": bool(config.get("no_ai", True)),
+            "ai_min_words": int(config.get("ai_min_words") or 30),
+            "ai_max_tokens": int(config.get("ai_max_tokens") or 2000),
+            "secrets_path": str(config.get("secrets_path") or ".secrets/api_config.json"),
+        }
 
     def extract(self, path: Path) -> dict[str, Any] | None:
         """
@@ -73,7 +77,7 @@ class MetadataExtractor:
         >>> e.extract(Path("/nonexistent")) is None
         True
         """
-        return scan_project(path)
+        return scan_project(path, config=self._config)
 
 
 def _write_bug_report(path: Path, exc: Exception, out_dir: Path) -> None:
@@ -109,7 +113,11 @@ def _write_bug_report(path: Path, exc: Exception, out_dir: Path) -> None:
         logger.warning(f"Não foi possível gravar bug report para '{path}': {write_exc}")
 
 
-def scan_project(path: Path, bug_report_dir: Path | None = None) -> dict[str, Any] | None:
+def scan_project(
+    path: Path,
+    bug_report_dir: Path | None = None,
+    config: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
     """
     Extrai todos os metadados de um projeto. Seguro para ProcessPoolExecutor.
 
@@ -118,10 +126,15 @@ def scan_project(path: Path, bug_report_dir: Path | None = None) -> dict[str, An
     PortfolioGenerator.build_portfolio(). Quando bug_report_dir é fornecido,
     cria um arquivo bug-report-*.md em caso de falha.
 
+    Quando config contém no_ai=False e credenciais válidas, aciona geração
+    de descrição via IA para projetos sem README adequado (Phase 7).
+
     :param path: Caminho do diretório do projeto.
     :type path: Path
     :param bug_report_dir: Diretório onde gravar bug reports (opcional).
     :type bug_report_dir: Path | None
+    :param config: Configuração de IA (no_ai, ai_min_words, ai_max_tokens, secrets_path).
+    :type config: dict[str, Any] | None
     :return: Dicionário de metadados do projeto ou None.
     :rtype: dict[str, Any] | None
 
@@ -142,7 +155,38 @@ def scan_project(path: Path, bug_report_dir: Path | None = None) -> dict[str, An
 
         readme_words = word_count(readme_text) if readme_text else 0
         readme_tokens = token_count(readme_text) if readme_text else 0
-        _ = readme_tokens  # reservado para Phase 7 (AI trigger)
+
+        technologies = _infer_technologies(path)
+        project_type = _infer_type(path)
+
+        # Montar dados parciais para o summarizer (Phase 7)
+        partial_data: dict[str, Any] = {
+            "name": path.name,
+            "type": project_type,
+            "technologies": technologies,
+            "language": {
+                "primary": lang_info.primary,
+                "secondary": lang_info.secondary,
+                "confidence": lang_info.confidence,
+            },
+            "metrics": {
+                "file_count": metrics.file_count,
+                "size_bytes": metrics.size_bytes,
+                "line_count_estimated": metrics.line_count_estimated,
+            },
+            "_readme_word_count": readme_words,
+            "_readme_token_count": readme_tokens,
+            "_readme_text": readme_text,
+        }
+
+        # Tentar geração via IA quando README inadequado
+        if config and not config.get("no_ai"):
+            ai_description = generate_summary(partial_data, config)
+            if ai_description:
+                description = ai_description
+                description_source = "ai-generated"
+            elif description_source == "empty":
+                description_source = "ai-unavailable"
 
         git_dict: dict[str, Any] = {"initialized": git_info is not None}
         if git_info is not None:
@@ -155,21 +199,13 @@ def scan_project(path: Path, bug_report_dir: Path | None = None) -> dict[str, An
         return {
             "name": path.name,
             "path": str(path),
-            "type": _infer_type(path),
+            "type": project_type,
             "description": description,
             "description_source": description_source,
-            "language": {
-                "primary": lang_info.primary,
-                "secondary": lang_info.secondary,
-                "confidence": lang_info.confidence,
-            },
-            "metrics": {
-                "file_count": metrics.file_count,
-                "size_bytes": metrics.size_bytes,
-                "line_count_estimated": metrics.line_count_estimated,
-            },
+            "language": partial_data["language"],
+            "metrics": partial_data["metrics"],
             "git": git_dict,
-            "technologies": _infer_technologies(path),
+            "technologies": technologies,
             "status": _infer_status(git_info),
             "last_modified": _get_last_modified(path),
             "_readme_word_count": readme_words,
