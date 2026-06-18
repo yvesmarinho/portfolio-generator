@@ -166,7 +166,9 @@ def scan_target(fixtures_dir: Path) -> Generator[Path, None, None]:
     target = fixtures_dir / "_scan_target_tmp"
     target.mkdir(exist_ok=True)
     (target / "valid-project-a").mkdir(exist_ok=True)
+    (target / "valid-project-a" / ".portfolio-project").write_text("{}\n")
     (target / "valid-project-b").mkdir(exist_ok=True)
+    (target / "valid-project-b" / ".portfolio-project").write_text("{}\n")
     (target / ".git").mkdir(exist_ok=True)
     (target / "node_modules").mkdir(exist_ok=True)
     (target / "__pycache__").mkdir(exist_ok=True)

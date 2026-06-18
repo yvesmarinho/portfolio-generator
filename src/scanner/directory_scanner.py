@@ -1,8 +1,11 @@
 """
 Scanner de diretórios para localizar projetos DevOps válidos.
 
-Responsabilidade única: encontrar e listar projetos válidos em um diretório raiz,
-aplicando filtros de exclusão configuráveis e o scope guard de segurança.
+Responsabilidade única: encontrar e listar projetos válidos em um diretório raiz.
+
+Projetos são identificados pelo arquivo marcador .portfolio-project, criado pelo
+subcomando `portfolio-gen init`. Diretórios sem o marcador são percorridos
+recursivamente até max_depth.
 """
 from __future__ import annotations
 
@@ -13,8 +16,10 @@ from loguru import logger
 
 ALLOWED_SCOPE = Path("/home/yves_marinho/Documentos/DevOps/")
 
+MARKER_FILE = ".portfolio-project"
+
 DEFAULT_EXCLUDED: frozenset[str] = frozenset(
-    {".git", "node_modules", "__pycache__", ".venv", "tmp"}
+    {".git", "node_modules", "__pycache__", ".venv", "tmp", ".secrets"}
 )
 
 
@@ -49,7 +54,7 @@ def validate_path_scope(path: Path) -> bool:
         resolved = path.resolve()
         allowed_resolved = ALLOWED_SCOPE.resolve()
         return resolved.is_relative_to(allowed_resolved)
-    except Exception as exc:
+    except OSError as exc:
         logger.warning(f"Erro ao validar escopo do path '{path}': {exc}")
         return False
 
@@ -58,8 +63,9 @@ class DirectoryScanner:
     """
     Varredura de diretórios para localizar projetos DevOps válidos.
 
-    Aplica o scope guard e filtros de exclusão para retornar apenas
-    subdiretórios que representam projetos reais.
+    Projetos são identificados pelo arquivo marcador .portfolio-project.
+    Diretórios sem marcador são percorridos recursivamente até max_depth.
+    Execute `portfolio-gen init` para marcar as raízes de projeto.
     """
 
     def __init__(self, config: dict[str, Any]) -> None:
@@ -82,10 +88,10 @@ class DirectoryScanner:
 
     def list_projects(self, root: Path) -> list[Path]:
         """
-        Lista projetos válidos (subdiretórios diretos) dentro do diretório raiz.
+        Lista projetos válidos dentro do diretório raiz.
 
-        Aplica o scope guard antes de qualquer operação. Retorna lista vazia
-        se o path estiver fora do escopo, não existir ou ocorrer qualquer erro.
+        Procura recursivamente por diretórios contendo o arquivo marcador
+        .portfolio-project. Execute `portfolio-gen init` para marcar projetos.
 
         :param root: Diretório raiz para varredura.
         :type root: Path
@@ -106,13 +112,21 @@ class DirectoryScanner:
             logger.warning(f"Diretório não existe ou não é diretório: {root}")
             return []
         try:
-            return self._scan_dir(root)
-        except Exception as exc:
+            return sorted(self._scan_recursive(root, depth=0))
+        except (OSError, RuntimeError) as exc:
             logger.error(f"Erro ao listar projetos em '{root}': {exc}")
             return []
 
-    def _scan_dir(self, root: Path) -> list[Path]:
-        """Varre um nível do diretório e retorna subdiretórios válidos, ordenados."""
+    def _scan_recursive(self, root: Path, depth: int) -> list[Path]:
+        """
+        Varre recursivamente procurando diretórios com .portfolio-project.
+
+        Diretórios marcados são incluídos diretamente sem recursão interna.
+        Diretórios sem marcador têm seus filhos inspecionados até max_depth.
+        """
+        if depth >= self._max_depth:
+            return []
+
         projects: list[Path] = []
         try:
             for entry in sorted(root.iterdir()):
@@ -120,7 +134,14 @@ class DirectoryScanner:
                     continue
                 if entry.name in self._excluded:
                     continue
-                projects.append(entry)
+                if (entry / MARKER_FILE).exists():
+                    projects.append(entry)
+                else:
+                    projects.extend(self._scan_recursive(entry, depth + 1))
         except PermissionError as exc:
             logger.warning(f"Sem permissão para ler '{root}': {exc}")
         return projects
+
+    def _scan_dir(self, root: Path) -> list[Path]:
+        """Delegação para _scan_recursive no nível 0 (compatibilidade)."""
+        return self._scan_recursive(root, depth=0)

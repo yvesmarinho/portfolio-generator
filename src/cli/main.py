@@ -4,6 +4,7 @@ CLI principal do portfolio-gen.
 Entry point: portfolio-gen (definido em pyproject.toml [project.scripts])
 
 Subcomandos:
+  init      — marca raízes de projetos interativamente (cria .portfolio-project)
   scan      — escaneia diretório e gera portfolio JSON
   validate  — valida arquivo de portfolio contra o schema
   report    — exibe relatório legível do portfolio
@@ -57,6 +58,110 @@ def cli(verbose: bool) -> None:
       portfolio-gen report output/portfolio-2026-06-17.json
     """
     configure_logging(verbose=verbose)
+
+
+@cli.command()
+@click.option(
+    "--path",
+    default=DEFAULT_SCAN_PATH,
+    show_default=True,
+    type=click.Path(exists=False),
+    help=f"Diretório raiz a percorrer. Deve estar em {ALLOWED_SCOPE}",
+)
+@click.option("--max-depth", default=3, show_default=True, type=int, help="Profundidade máxima de busca")
+@click.option("--dry-run", is_flag=True, default=False, help="Simular sem criar arquivos")
+def init(path: str, max_depth: int, dry_run: bool) -> None:
+    """
+    Marca raízes de projetos interativamente.
+
+    Percorre o diretório raiz e pergunta sobre cada pasta encontrada.
+    Quando confirmada, cria .portfolio-project no diretório — o arquivo que
+    o subcomando `scan` usa para identificar projetos.
+
+    Exemplos:
+
+    \b
+      portfolio-gen init
+      portfolio-gen init --path ~/Documentos/DevOps/Vya-Jobs/
+      portfolio-gen init --dry-run
+    """
+    from rich.prompt import Prompt
+
+    from scanner.directory_scanner import DEFAULT_EXCLUDED, MARKER_FILE, validate_path_scope
+
+    scan_path = Path(path)
+
+    if not validate_path_scope(scan_path):
+        console.print(f"[red]Erro: path fora do escopo permitido: {path}[/red]")
+        raise SystemExit(1)
+
+    if not scan_path.exists() or not scan_path.is_dir():
+        console.print(f"[red]Erro: diretório não existe: {path}[/red]")
+        raise SystemExit(1)
+
+    if dry_run:
+        console.print("[yellow]dry-run: nenhum arquivo será criado.[/yellow]")
+
+    console.print(
+        f"[bold cyan]portfolio-gen init[/bold cyan] → [cyan]{scan_path}[/cyan]\n"
+        "[dim]Para cada pasta: [y] marcar | [n] ignorar (recursão) | [s] pular subárvore[/dim]\n"
+    )
+
+    marked: list[Path] = []
+    skipped: list[Path] = []
+
+    def _walk(current: Path, depth: int) -> None:
+        if depth >= max_depth:
+            return
+        try:
+            entries = sorted(e for e in current.iterdir() if e.is_dir() and e.name not in DEFAULT_EXCLUDED)
+        except PermissionError:
+            return
+
+        for entry in entries:
+            rel = entry.relative_to(scan_path)
+            already = (entry / MARKER_FILE).exists()
+            label = f"[cyan]{rel}/[/cyan]"
+            if already:
+                label += " [dim](já marcado)[/dim]"
+
+            console.print(label)
+            choice = Prompt.ask(
+                "  Raiz de projeto?",
+                choices=["y", "n", "s"],
+                default="n",
+                show_choices=True,
+            )
+
+            if choice == "y":
+                marker = entry / MARKER_FILE
+                if not dry_run:
+                    marker.write_text(
+                        json.dumps(
+                            {
+                                "portfolio_root": True,
+                                "marked_at": datetime.now(UTC).isoformat(),
+                            },
+                            indent=2,
+                        )
+                        + "\n"
+                    )
+                marked.append(entry)
+                console.print(f"  [green]✓ Marcado:[/green] {marker.name}\n")
+            elif choice == "n":
+                _walk(entry, depth + 1)
+            else:
+                skipped.append(entry)
+                console.print("  [dim]↷ Subárvore ignorada[/dim]\n")
+
+    _walk(scan_path, depth=0)
+
+    console.print("\n[bold]Resumo:[/bold]")
+    console.print(f"  Marcados : [green]{len(marked)}[/green]")
+    console.print(f"  Ignorados: [dim]{len(skipped)}[/dim]")
+    if dry_run:
+        console.print("[yellow]dry-run: nenhum arquivo criado.[/yellow]")
+    raise SystemExit(0)
 
 
 @cli.command()
@@ -128,7 +233,10 @@ def scan(
     project_paths = scanner.list_projects(scan_path)
 
     if not project_paths:
-        console.print("[yellow]Nenhum projeto encontrado.[/yellow]")
+        console.print(
+            "[yellow]Nenhum projeto encontrado.[/yellow]\n"
+            "[dim]Execute [bold]portfolio-gen init[/bold] para marcar raízes de projeto.[/dim]"
+        )
         raise SystemExit(0)
 
     console.print(f"[dim]{len(project_paths)} diretórios encontrados — iniciando extração...[/dim]")

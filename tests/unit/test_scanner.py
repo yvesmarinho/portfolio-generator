@@ -251,46 +251,135 @@ class TestScannerCoverage:
 
     def test_list_projects_non_path_returns_empty(self) -> None:
         """list_projects com não-Path retorna [] (linha 101)."""
-        scanner = DirectoryScanner({"root_path": str(ALLOWED_SCOPE), "excluded_dirs": [], "max_depth": 1})
+        scanner = DirectoryScanner(
+            {"root_path": str(ALLOWED_SCOPE), "excluded_dirs": [], "max_depth": 1}
+        )
         assert scanner.list_projects("nao-e-um-path") == []  # type: ignore[arg-type]
 
-    def test_list_projects_scan_dir_exception_returns_empty(self, scan_target: Path) -> None:
-        """Exceção interna em _scan_dir → list_projects retorna [] (linhas 110-112)."""
-        scanner = DirectoryScanner({"root_path": str(scan_target), "excluded_dirs": [], "max_depth": 1})
-        with patch.object(scanner, "_scan_dir", side_effect=RuntimeError("forced")):
+    def test_list_projects_scan_recursive_exception_returns_empty(self, scan_target: Path) -> None:
+        """Exceção interna em _scan_recursive → list_projects retorna []."""
+        scanner = DirectoryScanner(
+            {"root_path": str(scan_target), "excluded_dirs": [], "max_depth": 1}
+        )
+        with patch.object(scanner, "_scan_recursive", side_effect=RuntimeError("forced")):
             result = scanner.list_projects(scan_target)
         assert result == []
 
     def test_file_in_root_skipped_in_scan_dir(self, scan_target: Path) -> None:
-        """Arquivo regular em root é pulado em _scan_dir (linha 120)."""
+        """Arquivo regular em root é pulado em _scan_dir."""
         (scan_target / "arquivo_regular.txt").write_text("not a directory")
-        scanner = DirectoryScanner({"root_path": str(scan_target), "excluded_dirs": [], "max_depth": 1})
+        scanner = DirectoryScanner(
+            {"root_path": str(scan_target), "excluded_dirs": [], "max_depth": 1}
+        )
         result = scanner.list_projects(scan_target)
         names = [p.name for p in result]
         assert "arquivo_regular.txt" not in names
 
     def test_scan_dir_permission_error_returns_empty(self, scan_target: Path) -> None:
-        """PermissionError em iterdir() → _scan_dir retorna [] (linhas 124-125)."""
-        scanner = DirectoryScanner({"root_path": str(scan_target), "excluded_dirs": [], "max_depth": 1})
+        """PermissionError em iterdir() → _scan_dir retorna []."""
+        scanner = DirectoryScanner(
+            {"root_path": str(scan_target), "excluded_dirs": [], "max_depth": 1}
+        )
         with patch("pathlib.Path.iterdir", side_effect=PermissionError("sem permissão")):
             result = scanner.list_projects(scan_target)
         assert result == []
 
 
+class TestDirectoryScannerMarkerDetection:
+    """Testes para detecção de projetos via arquivo marcador .portfolio-project."""
+
+    def test_marked_project_in_group_dir_is_found(self, tmp_path: Path) -> None:
+        """Diretório-grupo sem marcador → recursão encontra filhos marcados."""
+        group = tmp_path / "group-dir"
+        group.mkdir()
+        project = group / "real-project"
+        project.mkdir()
+        (project / ".portfolio-project").write_text("{}\n")
+
+        scanner = DirectoryScanner({"root_path": str(tmp_path), "excluded_dirs": [], "max_depth": 3})
+        with patch("scanner.directory_scanner.validate_path_scope", return_value=True):
+            result = scanner.list_projects(tmp_path)
+        names = [p.name for p in result]
+        assert "real-project" in names
+        assert "group-dir" not in names
+
+    def test_marked_project_not_recursed_into(self, tmp_path: Path) -> None:
+        """Diretório com marcador é incluído; sub-pastas não viram projetos separados."""
+        project = tmp_path / "my-project"
+        project.mkdir()
+        (project / ".portfolio-project").write_text("{}\n")
+        subdir = project / "src"
+        subdir.mkdir()
+        (subdir / ".portfolio-project").write_text("{}\n")
+
+        scanner = DirectoryScanner({"root_path": str(tmp_path), "excluded_dirs": [], "max_depth": 3})
+        with patch("scanner.directory_scanner.validate_path_scope", return_value=True):
+            result = scanner.list_projects(tmp_path)
+        names = [p.name for p in result]
+        assert "my-project" in names
+        assert "src" not in names
+
+    def test_unmarked_dir_not_returned(self, tmp_path: Path) -> None:
+        """Diretório sem marcador e sem filhos marcados não aparece nos resultados."""
+        plain = tmp_path / "plain-dir"
+        plain.mkdir()
+        (plain / "README.md").write_text("# hello")
+
+        scanner = DirectoryScanner({"root_path": str(tmp_path), "excluded_dirs": [], "max_depth": 2})
+        with patch("scanner.directory_scanner.validate_path_scope", return_value=True):
+            result = scanner.list_projects(tmp_path)
+        assert result == []
+
+    def test_secrets_dir_never_returned_as_project(self, tmp_path: Path) -> None:
+        """.secrets/ é excluída mesmo que contenha .portfolio-project."""
+        group = tmp_path / "group"
+        group.mkdir()
+        secrets = group / ".secrets"
+        secrets.mkdir()
+        (secrets / ".portfolio-project").write_text("{}\n")
+
+        scanner = DirectoryScanner({"root_path": str(tmp_path), "excluded_dirs": [], "max_depth": 3})
+        with patch("scanner.directory_scanner.validate_path_scope", return_value=True):
+            result = scanner.list_projects(tmp_path)
+        assert result == []
+
+    def test_max_depth_limits_recursion(self, tmp_path: Path) -> None:
+        """Recursão para quando depth >= max_depth."""
+        group = tmp_path / "group"
+        group.mkdir()
+        subgroup = group / "subgroup"
+        subgroup.mkdir()
+        deep_project = subgroup / "deep-project"
+        deep_project.mkdir()
+        (deep_project / ".portfolio-project").write_text("{}\n")
+
+        scanner = DirectoryScanner({"root_path": str(tmp_path), "excluded_dirs": [], "max_depth": 2})
+        with patch("scanner.directory_scanner.validate_path_scope", return_value=True):
+            result = scanner.list_projects(tmp_path)
+        names = [p.name for p in result]
+        assert "deep-project" not in names
+
+
 class TestScanProjectBugReportIntegration:
     """T030 (US2): scan_project() com bug_report_dir — testes de regressão."""
 
-    def test_scan_project_corrupted_returns_none_on_forced_error(self, corrupted_project: Path, tmp_path: Path) -> None:
+    def test_scan_project_corrupted_returns_none_on_forced_error(
+        self, corrupted_project: Path, tmp_path: Path
+    ) -> None:
         """scan_project() retorna None quando extrator interno falha no projeto corrompido."""
         bug_dir = tmp_path / "bugs"
-        with patch("extractor.metadata_extractor.detect_language", side_effect=RuntimeError("forced")):
+        forced = RuntimeError("forced")
+        with patch("extractor.metadata_extractor.detect_language", side_effect=forced):
             result = scan_project(corrupted_project, bug_report_dir=bug_dir)
         assert result is None
 
-    def test_scan_project_corrupted_creates_bug_report(self, corrupted_project: Path, tmp_path: Path) -> None:
+    def test_scan_project_corrupted_creates_bug_report(
+        self, corrupted_project: Path, tmp_path: Path
+    ) -> None:
         """scan_project() grava bug-report quando falha no projeto corrompido."""
         bug_dir = tmp_path / "bugs"
-        with patch("extractor.metadata_extractor.detect_language", side_effect=RuntimeError("forced")):
+        forced = RuntimeError("forced")
+        with patch("extractor.metadata_extractor.detect_language", side_effect=forced):
             scan_project(corrupted_project, bug_report_dir=bug_dir)
         assert len(list(bug_dir.glob("bug-report-*.md"))) == 1
 
