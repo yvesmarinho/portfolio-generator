@@ -65,3 +65,7 @@ logs/
 # portfolio-gen output
 output/
 !output/.gitkeep
+
+# portfolio-gen runtime artifacts (criados por portfolio-gen init)
+.portfolio-project
+docs/bugs/
