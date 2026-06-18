@@ -20,6 +20,7 @@ from functools import partial
 from pathlib import Path
 
 import click
+from loguru import logger
 from rich.console import Console
 from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 from rich.table import Table
@@ -131,9 +132,13 @@ def init(path: str, max_depth: int, dry_run: bool) -> None:
 
     console.print(
         f"[bold cyan]portfolio-gen init[/bold cyan] → [cyan]{scan_path}[/cyan]\n"
-        "[dim]Para cada pasta: "
-        "[y] marcar projeto | [n] ignorar (recursão) | [s] pular subárvore | [e] excluir do scan[/dim]\n"
+        "[dim]Para cada pasta:\n"
+        "  [bold][y][/bold] esta pasta É um projeto (marca e não entra dentro)\n"
+        "  [bold][r][/bold] entrar dentro para buscar sub-projetos\n"
+        "  [bold][s][/bold] pular esta subárvore inteira\n"
+        "  [bold][e][/bold] excluir do scan permanentemente[/dim]\n"
     )
+    logger.info(f"Init iniciado em '{scan_path}' (max_depth={max_depth}, dry_run={dry_run})")
 
     # Carrega exclusões já existentes para pular pastas já excluídas
     exclusions_data = _load_exclusions(EXCLUSIONS_PATH)
@@ -161,12 +166,13 @@ def init(path: str, max_depth: int, dry_run: bool) -> None:
             if already:
                 label += " [dim](já marcado)[/dim]"
 
+            logger.debug(f"Init: inspecionando '{rel}/'")
             console.print(label)
             choice = Prompt.ask(
-                "  Ação?",
-                choices=["y", "n", "s", "e"],
-                default="n",
-                show_choices=True,
+                "  [y] projeto  [r] entrar  [s] pular  [e] excluir",
+                choices=["y", "r", "s", "e"],
+                default="r",
+                show_choices=False,
             )
 
             if choice == "y":
@@ -183,24 +189,32 @@ def init(path: str, max_depth: int, dry_run: bool) -> None:
                         + "\n"
                     )
                 marked.append(entry)
+                logger.info(f"Init: '{rel}/' marcado como projeto raiz")
                 console.print(f"  [green]✓ Marcado:[/green] {marker.name}\n")
-            elif choice == "n":
+            elif choice == "r":
+                logger.debug(f"Init: entrando em '{rel}/'")
                 _walk(entry, depth + 1)
             elif choice == "e":
                 existing_excluded.add(entry.name)
                 if not dry_run:
                     _save_exclusion(entry.name, EXCLUSIONS_PATH)
                 excluded_added.append(entry)
+                logger.info(f"Init: '{rel}/' adicionado às exclusões permanentes")
                 console.print(
                     f"  [red]✗ Excluído do scan:[/red] {entry.name}"
                     f" → {EXCLUSIONS_PATH}\n"
                 )
-            else:
+            else:  # "s"
                 skipped.append(entry)
+                logger.debug(f"Init: '{rel}/' subárvore ignorada")
                 console.print("  [dim]↷ Subárvore ignorada[/dim]\n")
 
     _walk(scan_path, depth=0)
 
+    logger.info(
+        f"Init concluído: {len(marked)} marcados, "
+        f"{len(excluded_added)} excluídos, {len(skipped)} ignorados"
+    )
     console.print("\n[bold]Resumo:[/bold]")
     console.print(f"  Marcados      : [green]{len(marked)}[/green]")
     console.print(f"  Excluídos     : [red]{len(excluded_added)}[/red]")
