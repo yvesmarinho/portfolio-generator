@@ -282,7 +282,8 @@ def _infer_technologies(path: Path) -> list[str]:
             techs.append("Node.js")
         if "go.mod" in files_in_root:
             techs.append("Go modules")
-        if ".github" in {d.name for d in path.iterdir() if d.is_dir()} and (path / ".github" / "workflows").exists():
+        dirs_in_root = {d.name for d in path.iterdir() if d.is_dir()}
+        if ".github" in dirs_in_root and (path / ".github" / "workflows").exists():
             techs.append("GitHub Actions")
         if "ansible.cfg" in files_in_root or "playbook.yml" in files_in_root:
             techs.append("Ansible")
@@ -309,25 +310,19 @@ def _infer_status(git_info: object) -> str:
 
 def _get_last_modified(path: Path) -> str:
     """Obtém a data/hora da modificação mais recente de qualquer arquivo do projeto."""
+    import os
+
     max_mtime = 0.0
-    try:
-        for entry in path.rglob("*"):
-            if not entry.is_file():
-                continue
+
+    for dirpath, dirnames, filenames in os.walk(path):
+        dirnames[:] = [d for d in dirnames if d not in EXCLUDED_DIRS]
+        for fname in filenames:
             try:
-                rel_parts = entry.relative_to(path).parts
-            except ValueError:
-                continue
-            if any(part in EXCLUDED_DIRS for part in rel_parts):
-                continue
-            try:
-                mtime = entry.stat().st_mtime
-                if mtime > max_mtime:
-                    max_mtime = mtime
+                mtime = (Path(dirpath) / fname).stat().st_mtime
+                max_mtime = max(max_mtime, mtime)
             except OSError:
                 continue
-    except (PermissionError, OSError):
-        pass
+
     if max_mtime > 0:
         return datetime.fromtimestamp(max_mtime, tz=UTC).isoformat()
     return datetime.now(UTC).isoformat()

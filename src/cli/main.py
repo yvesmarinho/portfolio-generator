@@ -159,7 +159,12 @@ def scan(
         with ProcessPoolExecutor(max_workers=n_workers) as executor:
             future_to_path = {executor.submit(scan_fn, p): p for p in project_paths}
             for future in as_completed(future_to_path):
-                result = future.result()
+                try:
+                    result = future.result()
+                except Exception as exc:
+                    proj_path = future_to_path[future]
+                    console.print(f"[yellow]⚠ Worker falhou em '{proj_path.name}': {exc}[/yellow]")
+                    result = None
                 if result is None:
                     skipped += 1
                 else:

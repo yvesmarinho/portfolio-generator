@@ -11,7 +11,7 @@ from pathlib import Path
 from loguru import logger
 
 EXCLUDED_DIRS: frozenset[str] = frozenset(
-    {".git", "node_modules", "__pycache__", ".venv", "tmp"}
+    {".git", "node_modules", "__pycache__", ".venv", "tmp", ".secrets"}
 )
 
 
@@ -53,36 +53,33 @@ def extract_metrics(project_path: Path) -> ProjectMetrics:
 
 def _compute_metrics(root: Path) -> ProjectMetrics:
     """Itera recursivamente pelo projeto e calcula as métricas."""
+    import os
+
     file_count = 0
     size_bytes = 0
     line_count = 0
 
-    try:
-        for entry in root.rglob("*"):
-            if not entry.is_file():
-                continue
-            try:
-                rel_parts = entry.relative_to(root).parts
-            except ValueError:
-                continue
-            if any(part in EXCLUDED_DIRS for part in rel_parts):
-                continue
+    def _on_error(err: OSError) -> None:
+        logger.debug(f"Acesso negado (ignorado): {err.filename}")
 
+    for dirpath, dirnames, filenames in os.walk(root, onerror=_on_error):
+        # Poda in-place: remove dirs excluídos para não descer neles
+        dirnames[:] = [d for d in dirnames if d not in EXCLUDED_DIRS]
+
+        for fname in filenames:
+            fpath = Path(dirpath) / fname
             file_count += 1
             try:
-                stat = entry.stat()
+                stat = fpath.stat()
                 size_bytes += stat.st_size
             except OSError:
                 continue
-
             try:
-                raw = entry.read_bytes()
+                raw = fpath.read_bytes()
                 text = raw.decode("utf-8", errors="replace")
                 line_count += text.count("\n")
             except OSError:
                 continue
-    except (PermissionError, OSError) as exc:
-        logger.warning(f"Erro ao iterar '{root}': {exc}")
 
     return ProjectMetrics(
         file_count=file_count,

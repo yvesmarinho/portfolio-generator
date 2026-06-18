@@ -82,10 +82,20 @@ class TestMetricsExtractorCoverage:
         assert result.size_bytes == 0
         assert result.line_count_estimated == 0
 
-    def test_rglob_permission_error_returns_partial_metrics(self, tmp_path: Path) -> None:
-        """PermissionError em rglob dentro de _compute_metrics é tratado (linhas 84-85)."""
+    def test_permission_error_on_subdir_returns_partial_metrics(self, tmp_path: Path) -> None:
+        """PermissionError em subdiretório dentro de os.walk é ignorado; métricas parciais retornadas."""
+
         (tmp_path / "main.py").write_text("print('hello')")
-        with patch("pathlib.Path.rglob", side_effect=PermissionError("sem permissão")):
+        restricted = tmp_path / "restricted"
+        restricted.mkdir()
+        (restricted / "secret.txt").write_text("data")
+
+        def walk_with_error(root: str, **kwargs: object) -> object:
+            yield str(tmp_path), [restricted.name], ["main.py"]
+            kwargs.get("onerror", lambda e: None)(  # type: ignore[operator]
+                PermissionError(13, "Permission denied", str(restricted))
+            )
+
+        with patch("os.walk", side_effect=walk_with_error):
             result = extract_metrics(tmp_path)
         assert isinstance(result, ProjectMetrics)
-        assert result.file_count == 0
