@@ -69,3 +69,8 @@ output/
 # portfolio-gen runtime artifacts (criados por portfolio-gen init)
 .portfolio-project
 docs/bugs/
+
+# Sessão e temporários
+.session-time/
+scripts/tmp/
+objetivo.yaml.bkp.*

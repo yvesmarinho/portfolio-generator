@@ -175,4 +175,14 @@ Configurados em `.claude/settings.json`:
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
+
+Current implementation plan: [specs/001-portfolio-gen-spec/plan.md](specs/001-portfolio-gen-spec/plan.md)
+
+Key design artifacts:
+- [research.md](specs/001-portfolio-gen-spec/research.md) — decisões arquiteturais (Decisões 1–7)
+- [data-model.md](specs/001-portfolio-gen-spec/data-model.md) — entidades e ScanConfig
+- [contracts/cli-schema.md](specs/001-portfolio-gen-spec/contracts/cli-schema.md) — contrato da CLI
+- [quickstart.md](specs/001-portfolio-gen-spec/quickstart.md) — guia de validação
+
+Notable: exclusões de pastas do scanner configuradas em `config/scan-exclusions.json` (Decisão 7, 2026-06-18).
 <!-- SPECKIT END -->

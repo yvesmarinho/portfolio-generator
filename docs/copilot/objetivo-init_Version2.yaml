@@ -1,0 +1,408 @@
+prompt:
+  role: user
+  content:
+    description: >
+      Criar ferramenta de análise automatizada para catalogar projetos em
+      /home/yves_marinho/Documentos/DevOps/, gerando portfólio profissional em JSON
+      com resumos, métricas de código, tecnologias, metadados Git e indicadores
+      de qualidade. A solução deve ser reutilizável, extensível, segura e adequada
+      para uso profissional em cenários locais de grande volume de dados.
+    specification:
+      project_name: "portfolio-generator"
+      project_slug: "portfolio_generator"
+      version: "0.1.0"
+      status: "draft"
+      languages:
+        primary: "Python 3.12+"
+        alternatives_allowed: true
+        alternatives_note: >
+          Outras linguagens podem ser propostas somente se entregarem ganho objetivo
+          de qualidade, desempenho, segurança, testabilidade ou manutenibilidade,
+          sem aumentar indevidamente a complexidade operacional.
+      docstyle: "reStructuredText (Python)"
+      doctest_required: true
+      typing_required: true
+      return_error_policy:
+        rule: >
+          Em caso de erro, funções e métodos públicos devem preferir tratamento
+          explícito com logging estruturado e retorno controlado apenas quando o
+          contrato permitir. O uso indiscriminado de False como substituto genérico
+          de exceção deve ser evitado em regras internas críticas.
+        compatibility_note: >
+          Como requisito do usuário, pontos de fronteira e fluxos controlados podem
+          retornar False em falhas operacionais recuperáveis, desde que isso esteja
+          documentado no contrato da função e testado.
+      validation_policy:
+        description: >
+          Toda função, método, classe e comando CLI deve validar parâmetros de
+          entrada quanto a vazio, nulidade, tipo, formato e invariantes mínimas
+          exigidas pelo domínio.
+        required_checks:
+          - "Validação de None"
+          - "Validação de tipo"
+          - "Validação de string vazia"
+          - "Validação de coleções vazias quando aplicável"
+          - "Validação de path seguro e permitido"
+          - "Validação de schema para dados exportados"
+      error_handling_policy:
+        description: >
+          Todo código operacional deve possuir tratamento explícito de erro nas
+          fronteiras do sistema, com try/except e logging. Exceções devem ser
+          contextualizadas, registradas e convertidas em falhas controladas nas
+          camadas apropriadas.
+        mandatory_rules:
+          - "Toda fronteira externa deve usar try/except"
+          - "Toda operação de I/O deve ser protegida"
+          - "Toda integração opcional com IA deve falhar de forma graciosa"
+          - "Falha em um projeto não deve interromper o lote completo"
+          - "Toda falha deve gerar log detalhado"
+      ai_models:
+        enabled: true
+        optional: true
+        providers:
+          - "Claude 4.5 Sonnet via Copilot"
+          - "Anthropic API"
+          - "OpenAI API"
+        usage_policy: >
+          IA só pode ser utilizada para gerar ou condensar resumos quando README.md
+          não existir, estiver excessivamente extenso, estiver malformado ou não
+          fornecer contexto suficiente. A análise principal deve depender
+          prioritariamente de metadados estruturados, heurísticas determinísticas
+          e análise local dos arquivos.
+      libraries:
+        essenciais:
+          - "pandas"
+          - "pathlib"
+          - "pyyaml"
+          - "tomli"
+          - "gitpython"
+        analise_codigo:
+          - "tree-sitter"
+          - "pygments"
+          - "chardet"
+        cli_ux:
+          - "click"
+          - "loguru"
+          - "rich"
+        validacao_tipagem:
+          - "pydantic"
+          - "jsonschema"
+        qualidade:
+          - "pytest"
+          - "pytest-cov"
+          - "ruff"
+          - "pylint"
+          - "mypy"
+        ia_opcional:
+          - "anthropic"
+          - "openai"
+      data_volume:
+        expected_range: "1-10 GB"
+        classification: "large"
+        constraints:
+          - "Evitar carregar todo o conjunto de dados em memória"
+          - "Preferir processamento incremental ou em streaming quando possível"
+          - "Monitorar consumo de CPU e RAM"
+      workflow:
+        framework: "Spec-Driven Development"
+        objective_workflow: "Workflow baseado em objetivo.yaml v2.0 com SpecKit"
+        required_generated_files:
+          - "spec.md"
+          - "plan.md"
+          - "tasks.md"
+        out_of_scope_policy: >
+          Itens fora do escopo devem ser documentados separadamente com justificativa,
+          impacto e proposta futura.
+      architecture:
+        style: "Layered Architecture with Lightweight DDD and simplified Ports/Adapters"
+        minimum_standard: >
+          O projeto deve seguir arquitetura em camadas, separando CLI/presentation,
+          application/use_cases, domain e infrastructure, com baixo acoplamento,
+          alta coesão, contratos explícitos, validação de entrada, logging
+          estruturado e testes automatizados.
+        layers:
+          - "presentation"
+          - "application"
+          - "domain"
+          - "infrastructure"
+          - "shared"
+        principles:
+          - "SOLID"
+          - "Separation of Concerns"
+          - "Dependency Inversion"
+          - "Fail Fast on invalid inputs"
+          - "Graceful Degradation on partial analysis failures"
+          - "Explicit Contracts"
+          - "High Cohesion"
+          - "Low Coupling"
+        patterns:
+          - "Factory"
+          - "Strategy"
+          - "Adapter"
+          - "Facade"
+          - "Builder"
+        mandatory_constraints:
+          - "A camada CLI não deve conter regra de negócio"
+          - "A camada de domínio não deve depender de click, rich, loguru, gitpython ou SDKs de IA"
+          - "Integrações externas devem ser encapsuladas em adapters/providers"
+          - "Todo JSON exportado deve ser validado por schema versionado"
+          - "Nunca processar caminhos fora de /home/yves_marinho/Documentos/DevOps/"
+          - "Casos de uso devem orquestrar fluxos de aplicação"
+          - "Validações devem ser centralizadas e reutilizáveis"
+      rules:
+        specific:
+          - "Aplicar melhores práticas de mercado de forma pragmática"
+          - "Utilizar SOLID com foco em clareza e manutenção"
+          - "Utilizar programação modular por responsabilidades"
+          - "Evitar arquivos muito longos"
+          - "Utilizar click na CLI"
+          - "Utilizar loguru com logs detalhados do fluxo"
+          - "Nunca processar arquivos fora de /home/yves_marinho/Documentos/DevOps/"
+          - "Validar todas as entradas de usuário"
+          - "Validar dados na entrada de funções e classes incluindo tipagem"
+          - "Utilizar arquivos JSON para dados sensíveis e configuráveis"
+          - "Separar segredos da lógica de negócio"
+        quality:
+          - "Linting obrigatório antes de commit com ruff e pylint"
+          - "Cobertura mínima de testes de 90%"
+          - "Type hints obrigatórios"
+          - "Documentação obrigatória em todas as funções e classes"
+          - "Headers com detalhes em cada arquivo de código"
+          - "Mypy obrigatório na pipeline"
+          - "Validação de schema obrigatória"
+        general:
+          - "Todos os arquivos gerados devem ser armazenados nas devidas pastas"
+          - "Na raiz do projeto, manter apenas arquivos estritamente necessários"
+          - "Código deve seguir padrões de qualidade, estilo e formatação automática"
+          - "Fluxo de trabalho deve ser guiado por prompts para GitHub Copilot quando aplicável"
+          - "Configuração MCP deve ser gerada automaticamente com base nas especificações"
+          - "Sistema de versionamento e histórico deve rastrear mudanças relevantes"
+          - "Utilizar práticas de segurança para segredos e prevenção de vulnerabilidades"
+      folder_structure:
+        - path: ".github/"
+          description: "Agents, workflows e automações de CI/CD"
+          generated: true
+        - path: ".git-hooks/"
+          description: "Hooks personalizados de Git"
+          generated: true
+        - path: ".memory/"
+          description: "Memória e contexto para agentes"
+          generated: true
+        - path: ".secrets/"
+          description: "Armazenamento local de segredos, não versionado"
+          generated: false
+        - path: ".session-index/"
+          description: "Índice de sessões e interações"
+          generated: true
+        - path: ".session-time/"
+          description: "Registro de tempo gasto em sessões"
+          generated: true
+        - path: ".specify/"
+          description: "Configurações específicas do projeto"
+          generated: true
+        - path: ".vscode/"
+          description: "Configurações de editor e MCP"
+          generated: true
+        - path: "docs/"
+          description: "Documentação funcional, técnica e arquitetural"
+          generated: true
+        - path: "logs/"
+          description: "Logs de execução e histórico"
+          generated: true
+        - path: "schemas/"
+          description: "Schemas JSON versionados"
+          generated: false
+        - path: "scripts/"
+          description: "Scripts de automação"
+          generated: false
+        - path: "src/"
+          description: "Código-fonte principal"
+          generated: false
+        - path: "test/"
+          description: "Testes automatizados"
+          generated: false
+        - path: "tmp/"
+          description: "Arquivos temporários e backup, não versionados"
+          generated: true
+        - path: "objetivo.yaml"
+          description: "Especificação detalhada consolidada do projeto"
+          generated: false
+      src_structure:
+        package_root: "src/portfolio_generator/"
+        modules:
+          - "cli/"
+          - "application/dto/"
+          - "application/services/"
+          - "application/use_cases/"
+          - "domain/entities/"
+          - "domain/value_objects/"
+          - "domain/services/"
+          - "domain/rules/"
+          - "domain/contracts/"
+          - "infrastructure/filesystem/"
+          - "infrastructure/git/"
+          - "infrastructure/parsers/"
+          - "infrastructure/exporters/"
+          - "infrastructure/ai/"
+          - "infrastructure/config/"
+          - "shared/"
+      expected_outcome:
+        criterios_sucesso:
+          - "Sistema capaz de analisar arquivos e gerar resumo com informações úteis e consistentes"
+          - "Gerar JSON contendo nome do projeto, tipo, resumo, tecnologias, métricas e metadados"
+          - "Execução deve respeitar limites da máquina evitando travamentos"
+          - "Pipeline deve concluir com logs e relatório final de análise"
+          - "Falhas parciais devem ser registradas sem encerrar o processamento completo"
+        entregaveis:
+          - "Ferramenta CLI funcional (portfolio-gen)"
+          - "Documentação completa em docs/"
+          - "Suite de testes com 90%+ de cobertura"
+          - "Relatório de validação do Enterprise Template"
+          - "Schema JSON versionado e validado"
+        caso_uso_demo:
+          - "Gerar portfólio de projetos Python da pasta /home/yves_marinho/Documentos/DevOps/Vya-Jobs/enterprise-python-snippets"
+      infrastructure:
+        ambiente_desenvolvimento:
+          sistema_operacional: "Linux Mint"
+          python_version: "3.12+"
+          gerenciador_pacotes: "uv"
+          ide_editor: "VS Code"
+          editor_usuario: "vi"
+          git_workflow: "trunk-based simplificado ou feature-branch leve"
+        dependencias_externas:
+          - "Acesso à internet opcional para uso de IA"
+        deploy_distribuicao:
+          - "Execução local via Python"
+          - "Possibilidade futura de empacotamento"
+        configuracao_secrets:
+          - "Secrets em .secrets/ e fora de versionamento"
+          - "Nunca embutir tokens em código-fonte"
+        monitoramento_logs:
+          logging: "loguru"
+          metricas: "uso local simplificado"
+          tracing: "N/A"
+          alertas: "N/A"
+      profile:
+        - role: "python-developer"
+          skill_level: "advanced"
+          description: "Desenvolvedor Python experiente com foco em automação e CLI tools"
+        - role: "data-analyst"
+          skill_level: "intermediate"
+          description: "Análise de dados e metadados com Pandas"
+        - role: "cli-tool-developer"
+          skill_level: "intermediate"
+          description: "Desenvolvimento de interfaces CLI com click e rich"
+        - role: "copilot-assisted-developer"
+          skill_level: "advanced"
+          description: "Uso avançado de GitHub Copilot para acelerar implementação"
+        - role: "linux-advanced-user"
+          skill_level: "advanced"
+          description: "Usuário avançado de Linux com preferência por vi"
+      features_to_implement:
+        mvp:
+          - name: "Scanner de Diretórios"
+            description: "Varredura recursiva com filtros, exclusões e política de caminho seguro"
+            criterio_sucesso: "Escanear 100+ projetos em menos de 30 segundos em cenário controlado"
+          - name: "Extrator de Metadados"
+            description: "Coleta dados estruturados de linguagem, dependências, arquivos e Git"
+            criterio_sucesso: "Processar 1 projeto em menos de 2 segundos em média"
+          - name: "Analisador de README"
+            description: "Parser e sumarização heurística de README.md"
+            criterio_sucesso: "90%+ dos projetos com README obtêm descrição válida"
+          - name: "Gerador de JSON"
+            description: "Exporta portfólio em schema definido com validação"
+            criterio_sucesso: "Gerar JSON válido com tamanho controlado"
+          - name: "CLI Interativo"
+            description: "Interface com progress bars, help, verbose/quiet e feedback claro"
+            criterio_sucesso: "UX fluida, mensagens claras e erros tratáveis"
+        secundarias:
+          - "Análise de qualidade de código"
+          - "Geração de relatório HTML"
+          - "Comparação temporal entre execuções"
+          - "Exportação multi-formato"
+          - "Detecção de padrões arquiteturais"
+        integracoes: []
+      domain_model:
+        core_entities:
+          - "Project"
+          - "Portfolio"
+          - "ProjectMetadata"
+          - "ReadmeSummary"
+          - "GitMetadata"
+          - "AnalysisResult"
+        value_objects:
+          - "ProjectPath"
+          - "LanguageStat"
+          - "TechnologyTag"
+          - "QualityMetric"
+          - "ExportTarget"
+        domain_services:
+          - "ProjectClassifier"
+          - "SummaryResolver"
+          - "MetricAggregator"
+          - "PortfolioAssembler"
+        invariants:
+          - "Todo ProjectPath deve estar dentro do diretório permitido"
+          - "Todo Project deve possuir nome e caminho válidos"
+          - "Todo export final deve obedecer ao schema"
+      non_functional_requirements:
+        performance:
+          - "Evitar leitura completa desnecessária de arquivos grandes"
+          - "Executar com uso controlado de CPU e memória"
+          - "Permitir limites configuráveis de profundidade, tamanho e quantidade de arquivos"
+        security:
+          - "Nunca acessar paths fora do diretório permitido"
+          - "Nunca expor segredos em logs"
+          - "Sanitizar entradas CLI"
+          - "Tratar conteúdo de arquivos como não confiável"
+        observability:
+          - "Logs por etapa"
+          - "Logs por projeto"
+          - "Resumo final com contagem de sucesso, falhas e warnings"
+        maintainability:
+          - "Módulos pequenos e coesos"
+          - "Contratos explícitos"
+          - "Baixo acoplamento"
+          - "Documentação técnica mínima obrigatória"
+      pending_tasks:
+        - task: "Configurar ambiente virtual Python"
+          status: "completed"
+          prioridade: 0
+          nota: ".venv criado"
+        - task: "Definir schema JSON para portfólio"
+          status: "completed"
+          prioridade: 0
+          nota: "schemas/portfolio-schema-v1.json criado"
+        - task: "Criar estrutura de pastas src/"
+          status: "pending"
+          prioridade: 1
+        - task: "Instalar dependências"
+          status: "pending"
+          prioridade: 2
+        - task: "Criar módulo scanner de diretórios"
+          status: "pending"
+          prioridade: 3
+        - task: "Criar módulo extrator de metadados"
+          status: "pending"
+          prioridade: 4
+        - task: "Criar módulo analisador de README"
+          status: "pending"
+          prioridade: 5
+        - task: "Criar módulo gerador de JSON"
+          status: "pending"
+          prioridade: 6
+        - task: "Criar CLI principal"
+          status: "pending"
+          prioridade: 7
+        - task: "Definir testes unitários"
+          status: "pending"
+          prioridade: 8
+        - task: "Documentar casos de uso e exemplos"
+          status: "pending"
+          prioridade: 9
+        - task: "Gerar plan.md"
+          status: "pending"
+          prioridade: 10
+        - task: "Gerar tasks.md"
+          status: "pending"
+          prioridade: 11

@@ -50,6 +50,7 @@ com skip-and-continue, e opcionalmente usa IA para gerar descrições de projeto
 - Processar SOMENTE `/home/yves_marinho/Documentos/DevOps/` — validado em runtime antes de qualquer leitura
 - Credenciais SOMENTE em `.secrets/api_config.json` — nunca hardcoded
 - `--workers N` default: `min(4, os.cpu_count())`
+- Exclusões de pastas SOMENTE via `config/scan-exclusions.json` — nunca hardcoded no código; fallback para `DEFAULT_EXCLUSIONS` se arquivo ausente
 
 **Scale/Scope**: 100–500 projetos em disco; output JSON < 5 MB
 
@@ -63,12 +64,12 @@ com skip-and-continue, e opcionalmente usa IA para gerar descrições de projeto
 |-----------|------|--------|
 | I. Modular Architecture | packages por responsabilidade; Factory Pattern; máx 300 linhas/arquivo | ✅ PASS — 5 packages (scanner/extractor/analyzer/generator/cli), cada um com factory em `__init__.py` |
 | II. Test-First (90%+) | TDD; pytest; 90%+ cobertura de branches; testes de integração | ✅ PASS — plano de testes definido na fase de tasks; fixtures via `tmp_path` |
-| III. Security by Default | .secrets/ only; sem curl com credenciais; bandit em CI | ✅ PASS — API key de `.secrets/api_config.json`; scope guard valida path antes de qualquer leitura |
+| III. Security by Default | .secrets/ only; sem curl com credenciais; bandit em CI | ✅ PASS — API key de `.secrets/api_config.json`; scope guard valida path antes de qualquer leitura; exclusões em `config/scan-exclusions.json` (sem lógica de segurança hardcoded) |
 | IV. Performance Contracts | < 30s/100 projetos; < 512 MB RAM; workers configuráveis | ✅ PASS — ProcessPoolExecutor com max_workers; throttling via --workers flag |
 | V. Graceful Degradation | skip-and-continue; bug-report; loguru WARNING | ✅ PASS — `scan_project()` retorna None em erro; bug-report gerado em `docs/bugs/` |
-| VI. CLI-First UX | click; rich; --dry-run; --verbose/--quiet; help com exemplos | ✅ PASS — 3 subcomandos: `scan`, `validate`, `report`; todos com --dry-run e --verbose |
+| VI. CLI-First UX | click; rich; --dry-run; --verbose/--quiet; help com exemplos | ✅ PASS — 3 subcomandos: `scan`, `validate`, `report`; todos com --dry-run e --verbose; `--exclusions-file` para configuração externa |
 
-**Constitution Gate: ✅ APROVADO — sem violações. Prosseguindo para Fase 0.**
+**Constitution Gate: ✅ APROVADO — sem violações. Re-verificado 2026-06-18 após adição de Decisão 7 (exclusões via JSON).**
 
 ---
 
@@ -97,7 +98,7 @@ src/
 ├── __init__.py
 ├── scanner/
 │   ├── __init__.py               ← factory: create_scanner(config) → DirectoryScanner
-│   └── directory_scanner.py      ← scan_directory(), list_projects(), filter_excluded()
+│   └── directory_scanner.py      ← scan_directory(), list_projects(), filter_excluded(), load_exclusions(path)
 ├── extractor/
 │   ├── __init__.py               ← factory: create_extractor(config) → MetadataExtractor
 │   ├── git_extractor.py          ← extract_git_info(path) → GitInfo | None
@@ -116,6 +117,9 @@ src/
 
 schemas/
 └── portfolio-schema-v1.json      ← JSON schema para validação do output
+
+config/
+└── scan-exclusions.json          ← lista de pastas excluídas do scan (versionado; editável pelo usuário)
 
 tests/
 ├── unit/
@@ -165,6 +169,7 @@ Todos os pontos técnicos foram resolvidos via `objetivo-init.yaml` e debate de 
 - Estrutura JSON: nested por domínio semântico — Debate 4
 - Tratamento de erros: skip-and-continue + bug-report automático — Debate 5
 - Estrutura de módulos: packages por responsabilidade + Factory Pattern — Debate 6
+- **Exclusões de pastas: `config/scan-exclusions.json` (configurável externamente, nunca hardcoded)** — Decisão 7 (2026-06-18)
 
 ---
 

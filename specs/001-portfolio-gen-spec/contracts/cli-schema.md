@@ -36,13 +36,18 @@ Options:
   --ai-max-tokens INT  Máximo de tokens no README antes de usar IA para resumo
                        Default: 2000
 
+  --exclusions-file PATH  Arquivo JSON com lista de pastas a excluir do scan
+                          Default: config/scan-exclusions.json
+                          Se não existir, usa lista padrão embutida.
+                          Schema esperado: {"excluded_dirs": ["pasta1", "pasta2"]}
+
   --dry-run            Rodar análise completa sem escrever nenhum arquivo
   --verbose / --quiet  Nível de output no terminal
   --help               Exibir ajuda com exemplos
 
 Exit codes:
   0  Sucesso — arquivo gerado e validado
-  1  Erro crítico (diretório não encontrado, schema inválido)
+  1  Erro crítico (diretório não encontrado, schema inválido, exclusions-file inválido)
   2  Sucesso com avisos (projetos pulados por erro)
 ```
 
@@ -50,6 +55,7 @@ Exit codes:
 ```bash
 portfolio-gen scan --path ~/Documentos/DevOps/ --workers 2 --verbose
 portfolio-gen scan --no-ai --dry-run
+portfolio-gen scan --exclusions-file config/my-exclusions.json
 ```
 
 ---

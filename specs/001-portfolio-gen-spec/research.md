@@ -117,6 +117,43 @@ Factory functions em `__init__.py` permitem injeção de dependências e mocking
 
 ---
 
+## Decisão 7 — Configuração de Exclusões via Arquivo JSON
+
+**Decision**: Lista de pastas excluídas do scan carregada de `config/scan-exclusions.json`.
+Fallback para lista padrão embutida se o arquivo não existir.
+
+```json
+{
+  "excluded_dirs": [
+    ".git",
+    "node_modules",
+    "__pycache__",
+    ".venv",
+    "tmp",
+    ".mypy_cache",
+    ".pytest_cache",
+    "dist",
+    "build"
+  ]
+}
+```
+
+**Rationale**: Exclusões hardcoded no código exigem release para qualquer ajuste. Com um
+arquivo JSON externo, o usuário adiciona/remove entradas sem tocar no código-fonte. O arquivo
+`config/scan-exclusions.json` é versionado (padrão razoável para todos), mas pode ser
+substituído via flag `--exclusions-file <path>` para casos específicos por scan.
+
+**Comportamento de fallback**: se `config/scan-exclusions.json` não existir, a lista padrão
+embutida (`DEFAULT_EXCLUSIONS` em `directory_scanner.py`) é usada automaticamente —
+compatibilidade retroativa garantida.
+
+**Alternatives considered**:
+- Exclusões hardcoded no código — rejeitado: requer release para alterar; não customizável pelo usuário
+- Flag `--exclude DIR` repetível no CLI — rejeitado: verboso; não persiste entre invocações; não versionável
+- Arquivo `.portfoliogenignore` (estilo `.gitignore`) — rejeitado: parser mais complexo; JSON é suficiente e mais explícito
+
+---
+
 ## Dependências — Análise de Risco
 
 | Dependência | Risco | Mitigação |

@@ -181,7 +181,7 @@ git commit -F /tmp/git-commit-msg.txt   # Commit: 82c2374
 | `LICENSE` | MIT License (Copyright 2026 Yves Marinho) |
 | `.github/workflows/ci.yml` | Pipeline CI/CD com 3 jobs (lint, test, security) para Python 3.12/3.13 |
 
-**Destaques**: 
+**Destaques**:
 - CI/CD usa `uv` para gerenciamento de dependências
 - Jobs: ruff (lint), pytest (test), bandit (security)
 - Codecov integration preparada
@@ -192,7 +192,7 @@ git commit -F /tmp/git-commit-msg.txt   # Commit: 82c2374
 
 **Horário**: 20:55 - 21:11 UTC
 **Tipo**: Especificação/SPEC-01
-**Status**: ✅ Concluído  
+**Status**: ✅ Concluído
 **Prioridade**: P0 (Crítico)
 
 **Descrição**: Substituir template universal de objetivo.yaml por especificação detalhada do portfolio-generator.
@@ -212,7 +212,7 @@ git commit -F /tmp/git-commit-msg.txt   # Commit: 82c2374
 
 **Commit criado**: `e6febca feat(spec): atualizar objetivo.yaml com especificação detalhada do portfolio-generator`
 
-**Destaques para próxima sessão**: 
+**Destaques para próxima sessão**:
 - ✅ objetivo.yaml pronto para workflow SpecKit
 - 🚀 Próximo passo: executar `speckit.specify` para gerar spec.md
 - 🔐 Todas regras P0 seguidas (Python stdlib para backup, commit via arquivo)
@@ -237,7 +237,7 @@ git push origin main
 **Commits sincronizados**:
 - `e6febca` feat(spec): atualizar objetivo.yaml com especificação detalhada do portfolio-generator
 
-**Resultado**: 
+**Resultado**:
 - 7 objetos enviados (6.65 KiB)
 - Branch main sincronizada com origin/main
 
@@ -265,7 +265,7 @@ git push origin main
 ## Próximas Ações (P0 para próxima sessão)
 
 1. **SPEC-02**: Executar `speckit.specify` para gerar spec.md
-2. **SPEC-03**: Executar `speckit.plan` para gerar plan.md  
+2. **SPEC-03**: Executar `speckit.plan` para gerar plan.md
 3. **SPEC-04**: Executar `speckit.tasks` para gerar tasks.md
 
 ---

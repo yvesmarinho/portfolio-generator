@@ -118,6 +118,7 @@ make clean      # remover output/ e logs/
 | `src/extractor/language_extractor.py` | Cascata de detecção de linguagem |
 | `src/generator/portfolio_generator.py` | Geração e validação do JSON |
 | `schemas/portfolio-schema-v1.json` | Schema de validação do output |
+| `config/scan-exclusions.json` | Lista de pastas excluídas do scan (versionado, editável) |
 | `.secrets/api_config.json` | Credenciais da API Anthropic (não versionado) |
 | `pyproject.toml` | Configuração do projeto, dependências, ferramentas |
 
@@ -126,6 +127,37 @@ make clean      # remover output/ e logs/
 ## Variáveis de ambiente (alternativa a .secrets/)
 
 Não suportado em v1. Toda configuração sensível via `.secrets/api_config.json`.
+
+---
+
+## Configurar exclusões de pastas
+
+O scanner carrega a lista de pastas excluídas de `config/scan-exclusions.json`.
+Para personalizar, edite o arquivo (ele é versionado junto com o projeto):
+
+```json
+{
+  "excluded_dirs": [
+    ".git",
+    "node_modules",
+    "__pycache__",
+    ".venv",
+    "tmp",
+    ".mypy_cache",
+    ".pytest_cache",
+    "dist",
+    "build"
+  ]
+}
+```
+
+Para usar um arquivo alternativo em um scan específico:
+
+```bash
+portfolio-gen scan --exclusions-file config/my-exclusions.json
+```
+
+Se `config/scan-exclusions.json` não existir, o scanner usa a lista padrão embutida.
 
 ---
 
