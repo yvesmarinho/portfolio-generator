@@ -125,6 +125,58 @@ class TestExtractDescription:
         result = extract_description(long_text)
         assert len(result) <= 1000
 
+    def test_skips_badge_line(self) -> None:
+        """Linha de badges/shields markdown não é usada como descrição."""
+        text = "[![CI](https://img.shields.io/badge/ci-passing-green)](url)\n\nReal description here.\n"
+        result = extract_description(text)
+        assert "shields.io" not in result
+        assert "Real description here" in result
+
+    def test_skips_multiple_badge_lines(self) -> None:
+        """Várias linhas de badge seguidas são todas puladas."""
+        text = (
+            "[![Build](url)](url)\n"
+            "![Coverage](url)\n"
+            "[![License](url)](url)\n\n"
+            "This project does something useful.\n"
+        )
+        result = extract_description(text)
+        assert "This project does something useful" in result
+
+    def test_skips_code_fence_block(self) -> None:
+        """Bloco de código (```) antes do parágrafo real é ignorado."""
+        text = "```\nssh-keygen -t rsa -b 4096\n```\n\nActual project description.\n"
+        result = extract_description(text)
+        assert "ssh-keygen" not in result
+        assert "Actual project description" in result
+
+    def test_skips_metadata_header_colon_after_bold(self) -> None:
+        """Linha tipo '**Version**: 1.0.0' é tratada como metadado, não descrição."""
+        text = "**Version**: 1.0.0 **Status**: In Development\n\nThe real project summary.\n"
+        result = extract_description(text)
+        assert "Version" not in result
+        assert "The real project summary" in result
+
+    def test_skips_metadata_header_colon_inside_bold(self) -> None:
+        """Linha tipo '> **Última atualização:** 2026-05-15' é tratada como metadado."""
+        text = "> **Última atualização:** 2026-05-15\n\nDescrição real do projeto.\n"
+        result = extract_description(text)
+        assert "atualização" not in result
+        assert "Descrição real do projeto" in result
+
+    def test_keeps_full_bold_sentence_as_description(self) -> None:
+        """Parágrafo inteiramente em negrito, mas com frase longa, não é tratado como metadado."""
+        text = "**Facilite a troca e gestão de projetos no VS Code por categorias.**\n"
+        result = extract_description(text)
+        assert "Facilite a troca e gestão de projetos" in result
+
+    def test_fence_after_content_stops_collection(self) -> None:
+        """Cerca de código aberta após o parágrafo já iniciado encerra a coleta."""
+        text = "Primeiro parágrafo real aqui.\n```\ncode block\n```\n"
+        result = extract_description(text)
+        assert "Primeiro parágrafo real" in result
+        assert "code block" not in result
+
 
 class TestReadmeParserCoverage:
     """Cobertura T048: chardet fallback, exceções e break por heading (linhas 48-49, 57-68, 144)."""

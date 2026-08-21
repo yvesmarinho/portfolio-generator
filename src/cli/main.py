@@ -18,6 +18,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import UTC, datetime
 from functools import partial
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
 from loguru import logger
@@ -26,6 +27,9 @@ from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn
 from rich.table import Table
 
 from cli._logging import configure_logging
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 console = Console()
 
@@ -571,14 +575,24 @@ def report(file: str, output_format: str, top: int | None, sort_by: str) -> None
 
     projects: list[dict[str, object]] = data.get("projects", []) if isinstance(data, dict) else []
 
-    sort_keys: dict[str, object] = {
+    def _nested_str(p: dict[str, object], outer: str, inner: str) -> str:
+        section = p.get(outer)
+        value = section.get(inner) if isinstance(section, dict) else None
+        return str(value) if value is not None else ""
+
+    def _nested_int(p: dict[str, object], outer: str, inner: str) -> int:
+        section = p.get(outer)
+        value = section.get(inner) if isinstance(section, dict) else None
+        return int(value) if isinstance(value, int | float | str) else 0
+
+    sort_keys: dict[str, Callable[[dict[str, object]], str | int]] = {
         "name": lambda p: str(p.get("name", "")).lower(),
-        "language": lambda p: str((p.get("language") or {}).get("primary", "")).lower(),
-        "size": lambda p: int((p.get("metrics") or {}).get("size_bytes", 0) or 0),
+        "language": lambda p: _nested_str(p, "language", "primary").lower(),
+        "size": lambda p: _nested_int(p, "metrics", "size_bytes"),
         "date": lambda p: str(p.get("last_modified", "")),
     }
     reverse_sort = sort_by in ("size", "date")
-    projects = sorted(projects, key=sort_keys[sort_by], reverse=reverse_sort)  # type: ignore[arg-type]
+    projects = sorted(projects, key=sort_keys[sort_by], reverse=reverse_sort)
 
     if top is not None:
         projects = projects[:top]

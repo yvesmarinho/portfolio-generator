@@ -6,9 +6,17 @@ Funções utilitárias word_count e token_count também exportadas aqui.
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from loguru import logger
+
+# Linha de badge/shield markdown (ex.: [![CI](url)](url) ou ![alt](url))
+_BADGE_RE = re.compile(r"^(\[!\[|!\[)")
+# Linha de metadados tipo "**Version**: 1.0.0" ou "> **Última atualização:** ..."
+_METADATA_RE = re.compile(r"^>?\s*(\*\*[^*]{1,30}:\*\*|\*\*[^*:]{1,30}\*\*\s*:)")
+# Cerca de bloco de código markdown (```)
+_FENCE_RE = re.compile(r"^```")
 
 README_NAMES: tuple[str, ...] = (
     "README.md",
@@ -117,8 +125,9 @@ def extract_description(readme_text: str | None) -> str:
     """
     Extrai o primeiro parágrafo significativo de um texto README.
 
-    Pula linhas de título (# ...) e linhas vazias iniciais.
-    Para no primeiro parágrafo completo. Limita a 1000 caracteres.
+    Pula linhas de título (# ...), badges/shields markdown, blocos de
+    código (```) e cabeçalhos de metadados (ex.: "**Version**: 1.0.0")
+    até encontrar o primeiro parágrafo real. Limita a 1000 caracteres.
 
     :param readme_text: Conteúdo bruto do README.
     :type readme_text: str | None
@@ -127,6 +136,8 @@ def extract_description(readme_text: str | None) -> str:
 
     >>> extract_description("# Title\\n\\nFirst paragraph.\\n")
     'First paragraph.'
+    >>> extract_description("[![CI](url)](url)\\n\\nReal description.\\n")
+    'Real description.'
     >>> extract_description("")
     ''
     >>> extract_description(None)
@@ -136,10 +147,22 @@ def extract_description(readme_text: str | None) -> str:
         return ""
     lines = readme_text.splitlines()
     collecting = False
+    in_fence = False
     result_lines: list[str] = []
     for line in lines:
         stripped = line.strip()
+        if _FENCE_RE.match(stripped):
+            if collecting:
+                break
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
         if stripped.startswith("#"):
+            if collecting:
+                break
+            continue
+        if _BADGE_RE.match(stripped) or _METADATA_RE.match(stripped):
             if collecting:
                 break
             continue

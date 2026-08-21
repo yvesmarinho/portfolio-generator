@@ -28,9 +28,8 @@ import re
 import subprocess
 import sys
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Tuple
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -54,7 +53,7 @@ class SuggestedMemory:
     """Memory suggestion with relevance score."""
     memory: SearchResult
     relevance: float  # 0-100 (percentage)
-    reasons: List[str]  # Why this memory was suggested
+    reasons: list[str]  # Why this memory was suggested
 
 
 def get_current_branch() -> str:
@@ -72,7 +71,7 @@ def get_current_branch() -> str:
         return ""
 
 
-def get_recent_commits(count: int = 10) -> List[str]:
+def get_recent_commits(count: int = 10) -> list[str]:
     """Get recent commit messages."""
     try:
         result = subprocess.run(
@@ -87,7 +86,7 @@ def get_recent_commits(count: int = 10) -> List[str]:
         return []
 
 
-def extract_keywords(text: str) -> List[str]:
+def extract_keywords(text: str) -> list[str]:
     """Extract meaningful keywords from text.
 
     Args:
@@ -127,7 +126,7 @@ def extract_keywords(text: str) -> List[str]:
     return unique_keywords
 
 
-def analyze_context(branch: str = None, commits: List[str] = None, query: str = None, task: str = None) -> List[ContextSource]:
+def analyze_context(branch: str = None, commits: list[str] = None, query: str = None, task: str = None) -> list[ContextSource]:
     """Analyze current context and extract keywords.
 
     Args:
@@ -180,7 +179,7 @@ def analyze_context(branch: str = None, commits: List[str] = None, query: str = 
     return sources
 
 
-def search_with_context(sources: List[ContextSource], limit: int = 5) -> List[SuggestedMemory]:
+def search_with_context(sources: list[ContextSource], limit: int = 5) -> list[SuggestedMemory]:
     """Search memories using context sources and calculate relevance.
 
     Args:
@@ -204,7 +203,7 @@ def search_with_context(sources: List[ContextSource], limit: int = 5) -> List[Su
 
     # Build search query (OR all keywords)
     # Quote keywords to avoid FTS5 syntax errors with numbers or special chars
-    query_parts = list(set(kw for kw, _, _ in all_keywords))
+    query_parts = list({kw for kw, _, _ in all_keywords})
     quoted_keywords = [f'"{kw}"' for kw in query_parts[:20]]  # Limit to 20 keywords
     search_query = " OR ".join(quoted_keywords)
 
@@ -233,7 +232,7 @@ def search_with_context(sources: List[ContextSource], limit: int = 5) -> List[Su
     return suggestions[:limit]
 
 
-def calculate_relevance(result: SearchResult, keywords: List[Tuple[str, float, str]], sources: List[ContextSource]) -> Tuple[float, List[str]]:
+def calculate_relevance(result: SearchResult, keywords: list[tuple[str, float, str]], sources: list[ContextSource]) -> tuple[float, list[str]]:
     """Calculate relevance score for a memory result.
 
     Args:
@@ -302,7 +301,7 @@ def calculate_relevance(result: SearchResult, keywords: List[Tuple[str, float, s
             branch_matches = sum(1 for kw in branch_keywords if kw in title_lower)
             if branch_matches > 0:
                 score += 5
-                reasons.append(f"Matches branch context")
+                reasons.append("Matches branch context")
 
     # Ensure score is in 0-100 range
     score = min(100, max(0, score))
@@ -313,7 +312,7 @@ def calculate_relevance(result: SearchResult, keywords: List[Tuple[str, float, s
     return score, reasons
 
 
-def format_output(suggestions: List[SuggestedMemory], context_sources: List[ContextSource]) -> str:
+def format_output(suggestions: list[SuggestedMemory], context_sources: list[ContextSource]) -> str:
     """Format suggestions as human-readable output."""
     if not suggestions:
         return "💡 No relevant memories found for current context."

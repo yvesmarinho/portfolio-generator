@@ -74,3 +74,6 @@ docs/bugs/
 .session-time/
 scripts/tmp/
 objetivo.yaml.bkp.*
+
+# Graphify (artefato regenerável)
+graphify-out/

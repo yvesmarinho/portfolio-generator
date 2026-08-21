@@ -38,7 +38,7 @@ from typing import Any
 
 # Local imports
 sys.path.insert(0, str(Path(__file__).parent))
-from lib.git_validators import validate_branch_name, format_validation_errors
+from lib.git_validators import format_validation_errors, validate_branch_name
 
 try:
     from rich.console import Console
@@ -129,7 +129,7 @@ def cmd_start():
 
     # Verificar se há sessão em andamento
     if STATE_FILE.exists():
-        with open(STATE_FILE, "r", encoding="utf-8") as f:
+        with open(STATE_FILE, encoding="utf-8") as f:
             state = json.load(f)
 
         current_date = datetime.utcnow().strftime("%Y-%m-%d")
@@ -205,7 +205,7 @@ def cmd_pause(reason: str = "break"):
         print("❌ Nenhuma sessão ativa. Use 'start' primeiro.", file=sys.stderr)
         return 1
 
-    with open(STATE_FILE, "r", encoding="utf-8") as f:
+    with open(STATE_FILE, encoding="utf-8") as f:
         state = json.load(f)
 
     if state.get("current_pause"):
@@ -233,7 +233,7 @@ def cmd_resume():
         print("❌ Nenhuma sessão ativa.", file=sys.stderr)
         return 1
 
-    with open(STATE_FILE, "r", encoding="utf-8") as f:
+    with open(STATE_FILE, encoding="utf-8") as f:
         state = json.load(f)
 
     if not state.get("current_pause"):
@@ -268,13 +268,13 @@ def cmd_stop():
         print("❌ Nenhuma sessão ativa.", file=sys.stderr)
         return 1
 
-    with open(STATE_FILE, "r", encoding="utf-8") as f:
+    with open(STATE_FILE, encoding="utf-8") as f:
         state = json.load(f)
 
     if state.get("current_pause"):
         print("⚠️  Sessão ainda pausada. Retomando automaticamente antes de finalizar.")
         cmd_resume()
-        with open(STATE_FILE, "r", encoding="utf-8") as f:
+        with open(STATE_FILE, encoding="utf-8") as f:
             state = json.load(f)
 
     now = _iso_now()
@@ -348,7 +348,7 @@ def cmd_stats(date: str | None = None):
         return 1
 
     sessions = []
-    with open(HISTORY_CSV, "r", encoding="utf-8") as f:
+    with open(HISTORY_CSV, encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             if date is None or row["session_date"] == date:
@@ -436,7 +436,7 @@ def cmd_status():
         print("📊 Status: Nenhuma sessão ativa")
         return 0
 
-    with open(STATE_FILE, "r", encoding="utf-8") as f:
+    with open(STATE_FILE, encoding="utf-8") as f:
         state = json.load(f)
 
     current_date = datetime.utcnow().strftime("%Y-%m-%d")
@@ -449,7 +449,7 @@ def cmd_status():
     print(f"Data atual:     {current_date}")
 
     if is_orphan:
-        print(f"⚠️  Status:        ÓRFÃ (sessão de outro dia)")
+        print("⚠️  Status:        ÓRFÃ (sessão de outro dia)")
     else:
         print(f"✅ Status:        {state.get('status', 'unknown').upper()}")
 
@@ -484,7 +484,7 @@ def cmd_cleanup(force: bool = False):
         print("✅ Nenhuma sessão órfã encontrada.")
         return 0
 
-    with open(STATE_FILE, "r", encoding="utf-8") as f:
+    with open(STATE_FILE, encoding="utf-8") as f:
         state = json.load(f)
 
     current_date = datetime.utcnow().strftime("%Y-%m-%d")

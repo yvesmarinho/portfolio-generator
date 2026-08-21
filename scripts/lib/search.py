@@ -28,7 +28,6 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 # ANSI colors
 GREEN = "\033[92m"
@@ -47,16 +46,16 @@ class ActivityBlock:
     session_date: str  # YYYY-MM-DD
     timestamp: str  # HH:MM or full datetime
     title: str
-    objective: Optional[str] = None
-    context: Optional[str] = None
-    steps: Optional[str] = None
-    result: Optional[str] = None
-    decisions: Optional[str] = None
-    files: Optional[str] = None
-    commits: Optional[str] = None
-    observations: Optional[str] = None
-    status:Optional[str] = None
-    raw_content: Optional[str] = None  # Full block text
+    objective: str | None = None
+    context: str | None = None
+    steps: str | None = None
+    result: str | None = None
+    decisions: str | None = None
+    files: str | None = None
+    commits: str | None = None
+    observations: str | None = None
+    status:str | None = None
+    raw_content: str | None = None  # Full block text
 
     @property
     def searchable_text(self) -> str:
@@ -142,7 +141,7 @@ class SessionIndexer:
         self.conn.executescript(self.SCHEMA)
         self.conn.commit()
 
-    def parse_daily_activities(self, file_path: Path) -> List[ActivityBlock]:
+    def parse_daily_activities(self, file_path: Path) -> list[ActivityBlock]:
         """Parse DAILY_ACTIVITIES file and extract activity blocks."""
         try:
             content = file_path.read_text(encoding="utf-8")
@@ -195,7 +194,7 @@ class SessionIndexer:
 
         return blocks
 
-    def _parse_canonical_block(self, block_text: str, session_date: str, file_path: str) -> Optional[ActivityBlock]:
+    def _parse_canonical_block(self, block_text: str, session_date: str, file_path: str) -> ActivityBlock | None:
         """Parse a canonical format activity block."""
         lines = block_text.split('\n')
 
@@ -240,7 +239,7 @@ class SessionIndexer:
             raw_content=block_text,
         )
 
-    def _parse_legacy_block(self, block_text: str, session_date: str, file_path: str) -> Optional[ActivityBlock]:
+    def _parse_legacy_block(self, block_text: str, session_date: str, file_path: str) -> ActivityBlock | None:
         """Parse a legacy format activity block."""
         # Extract title from first line (should be ### Title)
         title_match = re.search(r'###\s+([^\n]+)', block_text)
@@ -263,13 +262,13 @@ class SessionIndexer:
             raw_content=block_text,
         )
 
-    def _extract_field(self, text: str, field_name: str) -> Optional[str]:
+    def _extract_field(self, text: str, field_name: str) -> str | None:
         """Extract single-line field value."""
         pattern = rf'\*\*{re.escape(field_name)}\*\*:\s*([^\n]+)'
         match = re.search(pattern, text)
         return match.group(1).strip() if match else None
 
-    def _extract_list(self, text: str, header: str) -> Optional[str]:
+    def _extract_list(self, text: str, header: str) -> str | None:
         """Extract list items under a header."""
         pattern = rf'\*\*{re.escape(header)}\*\*:\s*\n((?:[\d\-\*]\s*[^\n]+\n?)+)'
         match = re.search(pattern, text, re.MULTILINE)
@@ -355,7 +354,7 @@ class SessionIndexer:
         self.conn.commit()
         return blocks_indexed
 
-    def _split_into_sections(self, content: str, filename: str) -> List[dict]:
+    def _split_into_sections(self, content: str, filename: str) -> list[dict]:
         """Split markdown document into searchable sections by ## headers.
 
         Returns list of dicts with 'title' and 'content' keys.
@@ -391,7 +390,7 @@ class SessionIndexer:
 
         return sections
 
-    def index_all_sessions(self, sessions_dir: Path | str, force_rebuild: bool = False) -> Tuple[int, int]:
+    def index_all_sessions(self, sessions_dir: Path | str, force_rebuild: bool = False) -> tuple[int, int]:
         """
         Index all DAILY_ACTIVITIES files in sessions directory.
 
@@ -431,7 +430,7 @@ class SessionIndexer:
         print(f"\n{CYAN}Summary:{RESET} {files_indexed} files, {blocks_indexed} blocks indexed")
         return (files_indexed, blocks_indexed)
 
-    def index_docs(self, docs_dir: Path | str = "docs") -> Tuple[int, int]:
+    def index_docs(self, docs_dir: Path | str = "docs") -> tuple[int, int]:
         """Index documentation markdown files (README, TODO, guides, etc.).
 
         Args:
@@ -473,7 +472,7 @@ class SessionIndexer:
         print(f"\n{CYAN}Summary:{RESET} {files_indexed} files, {sections_indexed} sections indexed")
         return (files_indexed, sections_indexed)
 
-    def index_specs(self, specify_dir: Path | str = ".specify") -> Tuple[int, int]:
+    def index_specs(self, specify_dir: Path | str = ".specify") -> tuple[int, int]:
         """Index SpecKit specification files (spec.md, plan.md, tasks.md).
 
         Args:
@@ -516,7 +515,7 @@ class SessionIndexer:
         print(f"\n{CYAN}Summary:{RESET} {files_indexed} files, {sections_indexed} sections indexed")
         return (files_indexed, sections_indexed)
 
-    def index_chats(self, sessions_dir: Path | str = "docs/SESSIONS") -> Tuple[int, int]:
+    def index_chats(self, sessions_dir: Path | str = "docs/SESSIONS") -> tuple[int, int]:
         """Index CHAT-*.md conversation files (IMP-55).
 
         Args:
@@ -549,7 +548,7 @@ class SessionIndexer:
         print(f"\n{CYAN}Summary:{RESET} {files_indexed} files, {messages_indexed} messages indexed")
         return (files_indexed, messages_indexed)
 
-    def index_by_scope(self, scope: str = "all", force_rebuild: bool = False) -> Tuple[int, int]:
+    def index_by_scope(self, scope: str = "all", force_rebuild: bool = False) -> tuple[int, int]:
         """Index documents by scope.
 
         Args:
@@ -670,10 +669,10 @@ class SessionSearcher:
         self,
         query: str,
         limit: int = 20,
-        date_from: Optional[str] = None,
-        date_to: Optional[str] = None,
-        scope: Optional[str] = None,
-    ) -> List[SearchResult]:
+        date_from: str | None = None,
+        date_to: str | None = None,
+        scope: str | None = None,
+    ) -> list[SearchResult]:
         """
         Search indexed activities using FTS5 query syntax.
 
@@ -744,9 +743,9 @@ class SessionSearcher:
             return results
 
         except sqlite3.OperationalError as e:
-            raise ValueError(f"Invalid FTS5 query: {e}")
+            raise ValueError(f"Invalid FTS5 query: {e}") from e
 
-    def get_activity_context(self, session_date: str, title: str) -> Optional[str]:
+    def get_activity_context(self, session_date: str, title: str) -> str | None:
         """Retrieve full activity block content by session date and title."""
         cursor = self.conn.execute(
             """
