@@ -63,6 +63,12 @@
     "enterprise.workforce",
     "vya-repositorio",
     "vya_backupbd",
-    "vya_global"
+    "vya_global",
+    "arduino",
+    "domotica",
+    "wifi-qrcode-generator",
+    "yvesmarinho_git_profile",
+    "enterprise-insurance",
+    "enterprise-kubernets-operation"
   ]
 }
