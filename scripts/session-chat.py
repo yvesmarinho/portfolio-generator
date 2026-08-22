@@ -94,7 +94,7 @@ def cmd_list(args):
 
     for chat_path in chat_files:
         # Read frontmatter to get metadata
-        with open(chat_path, "r", encoding="utf-8") as f:
+        with open(chat_path, encoding="utf-8") as f:
             content = f.read()
 
             # Extract session_id and duration from frontmatter
@@ -175,7 +175,7 @@ def cmd_export(args):
             return 1
 
     # Read chat content
-    with open(chat_path, "r", encoding="utf-8") as f:
+    with open(chat_path, encoding="utf-8") as f:
         content = f.read()
 
     # Export to output file

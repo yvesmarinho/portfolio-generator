@@ -19,7 +19,6 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Dict, Tuple
 
 # ANSI color codes
 GREEN = "\033[92m"
@@ -35,9 +34,9 @@ class ActivityBlock:
 
     raw_content: str
     start_line: int
-    title: Optional[str] = None
-    timestamp: Optional[str] = None
-    status_marker: Optional[str] = None
+    title: str | None = None
+    timestamp: str | None = None
+    status_marker: str | None = None
     has_objetivo: bool = False
     has_contexto: bool = False
     has_passos: bool = False
@@ -51,10 +50,10 @@ class ValidationResult:
     """Result of validating one DAILY_ACTIVITIES file."""
 
     file_path: Path
-    blocks: List[ActivityBlock]
-    errors: List[str]
-    warnings: List[str]
-    suspicious_patterns: List[Tuple[int, str, str]]  # (line_num, pattern, matched_text)
+    blocks: list[ActivityBlock]
+    errors: list[str]
+    warnings: list[str]
+    suspicious_patterns: list[tuple[int, str, str]]  # (line_num, pattern, matched_text)
 
 
 class SessionValidator:
@@ -100,7 +99,7 @@ class SessionValidator:
         self.files_validated = 0
         self.blocks_validated = 0
 
-    def parse_activity_blocks(self, content: str) -> List[ActivityBlock]:
+    def parse_activity_blocks(self, content: str) -> list[ActivityBlock]:
         """Parse DAILY_ACTIVITIES content into individual blocks."""
         blocks = []
         lines = content.split("\n")
@@ -148,7 +147,7 @@ class SessionValidator:
 
         return block
 
-    def validate_block(self, block: ActivityBlock, file_path: Path) -> Tuple[List[str], List[str]]:
+    def validate_block(self, block: ActivityBlock, file_path: Path) -> tuple[list[str], list[str]]:
         """Validate a single activity block. Returns (errors, warnings)."""
         errors = []
         warnings = []
@@ -187,7 +186,7 @@ class SessionValidator:
 
     def scan_for_suspicious_patterns(
         self, content: str, file_path: Path
-    ) -> List[Tuple[int, str, str]]:
+    ) -> list[tuple[int, str, str]]:
         """Scan content for potentially sensitive data."""
         findings = []
         lines = content.split("\n")
@@ -269,7 +268,7 @@ class SessionValidator:
         self.files_validated += 1
         self.blocks_validated += len(result.blocks)
 
-    def validate_directory(self, directory: Path, verbose: bool = False) -> List[ValidationResult]:
+    def validate_directory(self, directory: Path, verbose: bool = False) -> list[ValidationResult]:
         """Validate all DAILY_ACTIVITIES files in a directory."""
         files = sorted(directory.glob("DAILY_ACTIVITIES_*.md"))
 

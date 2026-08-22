@@ -1,169 +1,355 @@
 prompt:
   role: user
   content:
-    description: "Criar ferramenta de análise automatizada para catalogar projetos em /home/yves_marinho/Documentos/DevOps/, gerando portfólio profissional em JSON com resumos, métricas de código, tecnologias e metadados Git. Solução de automação para uso profissional com possibilidade de reutilização em outras demandas."
+    description: "Criar ferramenta CLI de análise automatizada para catalogar projetos em /home/yves_marinho/Documentos/DevOps/,
+                  gerando portfólio profissional em JSON com resumos, métricas de código, tecnologias e metadados Git.
+                  Solução de automação para uso profissional com possibilidade de reutilização em outras demandas."
     specification:
-      - project_name: "portfolio-generator"
-      - languages: "Python 3.12+ (aceita propostas para outras linguagens se influenciar qualidade da entrega)"
-      - docstyle: "Google Style (Python)"
-      - ai_models: "Opcional - Claude 4.5 Sonnet via Copilot para gerar resumos automáticos apenas quando README.md não existir ou for muito extenso. Análise principal será feita sem IA usando metadados estruturados."
-      - libraries:
-          essenciais: "pandas, pathlib, pyyaml, tomli, gitpython"
-          analise_codigo: "tree-sitter, pygments, chardet"
-          cli_ux: "click, loguru, rich"
-          ia_opcional: "anthropic ou openai (para resumos apenas)"
-      - data_volume: "1-10 GB (grande)"
-      - workflow-objetivo: "Workflow baseado em objetivo.yaml v2.0 com SpecKit"
-      - workflow-specify: "Geração automática de spec.md, plan.md e tasks.md"
-      - out-scope: "Itens fora do escopo serão documentados separadamente"
-      - rules:
-          - Regras específicas do projeto:
-              - "Aplicar as melhores práticas e frameworks do mercado. Como SOLID, design pattern Factory e outros."
-              - "Utilizar programação em módulos por responsabilidades e evitar longos arquivos de código"
-              - "Utilizar biblioteca Python CLI (click)"
-              - "Utilizar Loguru, com logs detalhados que demonstrem o fluxo que o programa percorre"
-              - "Nunca processar arquivos fora de /home/yves_marinho/Documentos/DevOps/"
-              - "Validar todas as entradas de usuário"
-              - "Validar dados na entrada de função/classes incluindo tipagem"
-              - "Utilizar arquivos JSON para dados sensíveis, que nunca devem ser fixos no código"
-          - Regras de qualidade:
-              - "Linting obrigatório antes de commit (ruff, pylint)"
-              - "Cobertura de testes mínima: 90%"
-              - "Type hints obrigatórios em Python"
-              - "Documentação obrigatória em todas as funções e classes"
-              - "Headers com detalhes em cada arquivo de código"
-          - Regras gerais:
-              - "Todos os arquivos gerados devem ser armazenados nas devidas pastas, na raiz do projeto só os arquivos extremamente necessários"
-              - "Códigos gerados devem seguir padrões de qualidade e estilo, com linting e formatação automática"
-              - "Fluxo de trabalho deve ser guiado por prompts para GitHub Copilot"
-              - "Configuração MCP deve ser gerada automaticamente baseada nas especificações"
-              - "Sistema de versionamento e histórico deve rastrear todas as mudanças"
-              - "Utilizar as melhores práticas de desenvolvimento de software, incluindo testes automatizados, documentação clara e manutenção de código"
-              - "Utilizar as melhores práticas de segurança, incluindo a gestão segura de credenciais e a proteção contra vulnerabilidades comuns"
+      project_name: "portfolio-generator"
+      created_at: "2026-05-18 09:00:00"
+      owner: "Yves Marinho"
+      description: "CLI tool for automated project cataloging — scans DevOps project directories and generates a structured JSON
+                    portfolio with summaries, code metrics, technology stacks, and Git metadata."
+      output_format: "Python CLI package + JSON portfolio schema + comprehensive documentation (setup guide, ADRs, validation tests)"
+      docstring_style: "reStructuredText (PEP 257) with Doctest examples"
+      primary_workflow: "Scan → Sanitize → Identify → Aggregate → Synthesize → Organize → CLI"
+      planning_workflow: "objetivo.yaml → architecture debate → project constitution → specification → plan → tasks → implementation"
+      scope_boundary: "Out-of-scope items documented separately in docs/out-of-scope.md"
+      objetivos:
+        - "Construir ferramenta CLI (portfolio-gen) capaz de escanear 100+ projetos em < 10 minutos"
+        - "Gerar JSON estruturado com: nome, tipo, linguagem, resumo, métricas de código, tecnologias, metadados Git"
+        - "Integração opcional com Claude claude-sonnet-4-6 (via API Anthropic) para resumos automáticos quando README ausente ou muito extenso"
+        - "Respeitar limites de uso de CPU/RAM para evitar travamento do sistema durante análise de grandes volumes (1-10 GB)"
+        - "Produzir suite de testes com 90%+ de cobertura e documentação completa em docs/"
+      regras_projeto:
+        - "✅ Exclusões de pastas do scanner configuráveis via config/scan-exclusions.json — nunca hardcoded no código"
+        - "✅ Python 3.12+ como linguagem principal; shell apenas para orquestração simples"
+        - "✅ uv como gerenciador de ambiente Python (não pip diretamente)"
+        - "✅ utilizar loguru com mensagens de DEBUG mostrando fluxo de execução do programa e os dados obtidos"
+        - "✅ utilizar loguru com mensagens de INFO mostrando fluxo de execução do programa, classes, funções e métodos"
+        - "✅ SOLID + Factory Pattern + módulos por responsabilidade (sem arquivos longos)"
+        - "✅ Click para CLI; Rich para UX; Loguru para logs detalhados mostrando fluxo de execução"
+        - "✅ Nunca processar arquivos fora de /home/yves_marinho/Documentos/DevOps/"
+        - "✅ Todo código envolvido em try/except; com cuidado para não quebrar o código"
+        - "✅ Validar parâmetros recebidos em toda função/classe quanto a vazio e tipagem"
+        - "✅ Credenciais (API keys, tokens) em .secrets/*.json — nunca fixos no código nem expostos no chat"
+        - "✅ Toda requisição HTTP via Python requests; nunca curl com dados sensíveis"
+        - "✅ Type hints obrigatórios; linting via ruff + pylint antes de qualquer commit"
+        - "✅ Respeitar limits da plataforma Claude para processamento por hora."
+      regras_gerais:
+        - "📁 Organização: source em src/, scripts em scripts/, testes em tests/, docs em docs/ (raiz apenas arquivos essenciais)"
+        - "🔐 Segurança: .secrets/ para credenciais; .env nunca commitado; bandit + safety em CI/pre-commit"
+        - "📝 Documentação: toda função/classe com docstring reStructuredText + doctest; ADRs para decisões arquiteturais"
+        - "🧪 Testes: pytest com 90%+ cobertura (branches); fixtures para mocks de sistema de arquivos"
+        - "📦 Commits: atômicos com mensagens detalhadas; branches seguem convenção NNN-nome-feature; nunca sem testes passando"
+        - "🔄 Branches: merge da feature de volta para main após conclusão e testes; deletar branches merged"
+        - "✅ Quality gates: pre-commit hooks (black, ruff, mypy, pytest); security scan em PRs"
+        - "📋 Validação YAML/JSON: yamllint para YAML; check-jsonschema para JSON antes de commit"
+        - "🐛 Bugs: todo erro gera bug-report em docs/bugs/bug-report-YYYYMMDD-HHmm.md com stack trace e workaround"
+        - "📊 Sessões: todo trabalho logado em docs/SESSIONS/YYYY-MM-DD/ com timestamps, decisões e outcomes"
+        - "🚀 Idempotência: scripts de setup devem ser idempotentes e reproduzíveis do zero"
+        - "⚡ Performance: scan deve respeitar limites de CPU/RAM; usar multiprocessing com throttling configurável"
+
     folder_structure:
-      - ".github - Agents, Workflows e ações para CI/CD (gerados
-        automaticamente)"
-      - ".git-hooks - Hooks personalizados para Git (gerados automaticamente)"
-      - "./memory - Armazenamento de memória e contexto para agentes (gerado
-        automaticamente)"
-      - ".secrets - Armazenamento seguro de chaves e tokens (não versionado)"
-      - ".session-index - Índice de sessões e interações (gerado automaticamente)"
-      - ".sesssion-time - Registro de tempo gasto em cada sessão (gerado automaticamente)"
-      - ".specify - Configurações específicas do projeto (geradas
-        automaticamente)"
-      - ".vscode - Configurações VS Code e MCP (geradas automaticamente)"
-      - "docs - Documentação (gerada automaticamente)"
-      - "logs - Logs de execução e histórico de mudanças (gerados automaticamente)"
-      - "scripts - Scripts de automação inteligente"
-      - "src - Código-fonte do projeto (estrutura específica por tipo)"
-      - "test - Testes automatizados (framework baseado na linguagem)"
-      - "tmp - Arquivos temporários e de backup (não versionados e removidos
-        automaticamente no final da sessão)"
-      - "objetivo.yaml - Especificação detalhada do projeto"
+      - ".claude: Configurações do Claude Code (commands/, settings.json)"
+      - ".git-hooks: Hooks personalizados para Git (pre-commit, commit-msg)"
+      - ".secrets: Armazenamento seguro de chaves e tokens (não versionado, em .gitignore)"
+      - ".session-index: Índice de sessões e interações (gerado automaticamente)"
+      - ".session-time: Registro de tempo gasto em cada sessão (gerado automaticamente)"
+      - ".specify: Configurações do SpecKit (geradas automaticamente)"
+      - ".vscode: Configurações VS Code, MCP (mcp.json), launch configs"
+      - "docs: Documentação completa do projeto"
+      - "docs/architecture: Documentos de arquitetura e design"
+      - "docs/architecture/adr: Architecture Decision Records"
+      - "docs/bugs: Repositório de bug reports (bug-report-YYYYMMDD-HHmm.md)"
+      - "docs/debates: Documentação de debates técnicos e decisões"
+      - "docs/guides: Guias práticos (estilo, segurança, sessões, MCP)"
+      - "docs/reference: Referências de workflows e sistemas"
+      - "docs/templates: Templates reutilizáveis para artefatos do projeto"
+      - "docs/SESSIONS: Logs de atividade por sessão (YYYY-MM-DD/)"
+      - "logs: Logs de execução e histórico (não versionados)"
+      - "config: Arquivos de configuração do scanner (scan-exclusions.json)"
+      - "schemas: JSON schemas para validação (portfolio-schema-v1.json)"
+      - "scripts: Scripts de automação (setup, validação, sessão)"
+      - "src: Código-fonte (scanner/, extractor/, analyzer/, generator/, cli/)"
+      - "tests: Testes automatizados (unit/, integration/, fixtures/)"
+      - "tmp: Arquivos temporários e backup (não versionados)"
+      - "objetivo.yaml: Especificação detalhada do projeto"
+      - "pyproject.toml: Metadados Python, dependências, configurações (black, ruff, mypy)"
+      - "Makefile: Targets de conveniência (make setup, make test, make lint, make run)"
+
     expected_outcome:
-      criterios_sucesso:
-        - "Sistema capaz de analisar arquivos e gerar um resumo com informações de qualidade"
-        - "Gerar arquivo JSON contendo Nome do projeto, tipo do projeto, resumo rico em detalhes"
-        - "A execução do código tem de respeitar a utilização de máquina para evitar travamentos"
-      entregaveis:
-        - "Ferramenta CLI funcional (portfolio-gen)"
-        - "Documentação completa em docs/"
-        - "Suite de testes com 90%+ cobertura"
-        - "Relatório de validação do Enterprise Template"
-      caso_uso_demo:
-        - "Gerar portfólio de projetos Python da pasta /home/yves_marinho/Documentos/DevOps/Vya-Jobs/enterprise-python-snippets"
+      primary_deliverables:
+        - "portfolio-gen: Ferramenta CLI funcional (click) com progress bars, verbose/quiet mode e help completo"
+        - "src/scanner/: Módulo de varredura recursiva com filtros (.git, node_modules, __pycache__, .venv)"
+        - "src/extractor/: Módulo de extração de metadados (linguagens, deps, git info, file counts)"
+        - "src/analyzer/: Módulo de análise de README.md (parser markdown, extração de descrição)"
+        - "src/generator/: Módulo de geração de JSON validado contra schemas/portfolio-schema-v1.json"
+        - "docs/: Documentação completa (README, ADRs, guia de uso, schema docs)"
+        - "tests/: Suite pytest com 90%+ cobertura"
+      success_criteria:
+        - "Escanear 100+ projetos em < 30 segundos sem travar o sistema"
+        - "Processar 1 projeto em < 2 segundos com todos os metadados extraídos"
+        - "90%+ dos projetos com README obtêm descrição válida automaticamente"
+        - "JSON gerado é válido contra portfolio-schema-v1.json (< 5 MB para 100 projetos)"
+        - "Suite de testes com 90%+ cobertura (pytest --cov)"
+        - "Security scan limpo (sem credenciais no repo, bandit/safety verdes)"
+        - "Reproduzível do zero: clone → uv sync → portfolio-gen --help em < 2 minutos"
+      quality_gates:
+        - "Código: 100% type hints (mypy strict), 0 violações ruff, black-formatted"
+        - "Testes: 90%+ cobertura (branches), todos os testes < 5s, sem flaky tests"
+        - "Segurança: sem secrets hardcoded, todas as entradas validadas, tratamento de erros completo"
+        - "Performance: scan de 100 projetos < 30s, uso de RAM < 512 MB durante análise"
+        - "Documentação: toda função com docstring reStructuredText + doctest, decisões em ADRs"
 
     infrastructure:
-      ambiente_desenvolvimento:
-        sistema_operacional: "Linux Mint"
-        python_version: "3.12+"
-        gerenciador_pacotes: "uv"
-        ide_editor: "VS Code"
-        git_workflow: "a ser definido"
-      dependencias_externas:
-        - "Acesso à internet (para modelos de IA, APIs) - opcional"
-      deploy_distribuicao:
-        - "Script local (execução direta via python/shell)"
-      configuracao_secrets:
-        - "Secrets em .secrets/ (já no .gitignore)"
-      monitoramento_logs:
-        logging: "loguru"
-        metricas: "N/A"
-        tracing: "N/A"
-        alertas: "N/A"
+      resource_scope: "Local-only (processamento na máquina do usuário; IA opcional via API externa)"
+      operating_system: "Linux Mint 22.3 (Debian-based)"
+      hardware_spec:
+        cpu: "Multi-core (multiprocessing com throttling configurável)"
+        ram: "16GB disponíveis; ferramenta limitada a 512 MB durante scan"
+        storage: "1-10 GB de projetos para análise; output JSON < 5 MB"
+        gpu: "Não necessário"
+      software_requirements:
+        python: "3.12+ (type hints modernos, match statements)"
+        uv: "0.11+ (gerenciador de ambiente e dependências)"
+        git: "2.30+ (para GitPython e hooks)"
+        vs_code: "Qualquer edição (settings em .vscode/)"
+      key_dependencies:
+        essenciais:
+          - "pandas: processamento de metadados estruturados"
+          - "pathlib: manipulação de caminhos (stdlib)"
+          - "pyyaml: leitura de arquivos YAML"
+          - "tomli: leitura de pyproject.toml"
+          - "mcp io.github: extração de metadados Git"
+        analise_codigo:
+          - "tree-sitter: análise sintática de código fonte"
+          - "pygments: detecção de linguagens por conteúdo"
+          - "chardet: detecção de encoding de arquivos"
+        cli_ux:
+          - "click: interface CLI com subcommands e opções"
+          - "loguru: logging detalhado com fluxo de execução"
+          - "rich: progress bars, tabelas, saída colorida"
+        ia_opcional:
+          - "anthropic: resumos automáticos via Claude claude-sonnet-4-6 (apenas quando README ausente ou extenso)"
+      environment_variables: "Gerenciadas em .secrets/api_config.json (Anthropic API key); nunca em .env commitado"
 
+    ai_safety_instructions:
+      description: "REGRAS CRÍTICAS — Seguidas rigorosamente pelo assistente AI sem exceção"
+      security_and_privacy:
+        - "🚨 NUNCA expor, mencionar ou ecoar no chat: senhas, API keys, tokens, credenciais, usernames, emails, IPs, URLs privadas, SSH keys, dados de banco de dados ou qualquer PII"
+        - "🚨 NUNCA exibir paths completos para arquivos que contenham secrets, mesmo mencionando estrutura de diretórios"
+        - "🚨 SEMPRE mascarar dados sensíveis em logs, mensagens de erro e output de debugging antes de exibir (usar *** ou ########)"
+        - "🚨 NUNCA usar curl com credenciais na linha de comando — sempre Python requests lendo de .secrets/*.json"
+        - "🚨 Se o usuário colar dados sensíveis acidentalmente, sinalizar imediatamente e solicitar uso de placeholders"
+        - "🚨 Nunca commitar arquivos de .secrets/, .env com valores reais, ou logs que contenham dados sensíveis"
+      code_and_artifact_handling:
+        - "✅ Criar apenas arquivos explicitamente solicitados ou essenciais para completar a tarefa"
+        - "✅ NUNCA gerar arquivos além do especificado na solicitação do usuário"
+        - "✅ NUNCA modificar objetivo.yaml, CLAUDE.md ou arquivos de governança sem consentimento explícito"
+        - "✅ SEMPRE preservar comentários, docstrings e estilo de documentação existentes ao editar arquivos"
+        - "✅ Todo código Python: try/except obrigatório, retorno False em erro, validação de parâmetros (vazio + tipagem)"
+        - "✅ Docstrings obrigatórias no padrão reStructuredText com Doctest em toda função/classe"
+        - "✅ NUNCA processar arquivos fora de /home/yves_marinho/Documentos/DevOps/"
+      communication_standards:
+        - "📝 NUNCA assumir intenção do usuário; fazer perguntas de clarificação se ambíguo"
+        - "📝 SEMPRE explicar o que será alterado e POR QUÊ antes de executar"
+        - "📝 Respostas em Português do Brasil (pt-BR); código e variáveis em inglês"
+        - "📝 Respostas técnicas completas e detalhadas — não resumir nem simplificar desnecessariamente"
+        - "📝 Ao referenciar arquivos, usar links markdown clicáveis ([arquivo.py](src/arquivo.py#L10))"
+        - "📝 Pode ter opinião e debater tópicos técnicos quando solicitado"
+      task_execution:
+        - "🎯 SEMPRE completar a solicitação inteira antes de devolver ao usuário"
+        - "🎯 Usar TodoWrite para rastrear progresso em tarefas multi-step"
+        - "🎯 NUNCA pular validação ou testes; rodar linters antes de declarar trabalho completo"
+        - "🎯 Se bloqueado por contexto ausente, buscar ativamente nos arquivos antes de perguntar ao usuário"
+        - "🎯 Ao encontrar erros, criar bug-report em docs/bugs/ com stack trace e workaround"
+        - "🎯 Usar tool calls em paralelo quando seguro para acelerar coleta de contexto"
+      documentation_and_accuracy:
+        - "📖 SEMPRE documentar suposições, trade-offs e decisões tomadas durante implementação"
+        - "📖 NUNCA inventar paths, comandos ou assinaturas de API — verificar contra workspace"
+        - "📖 SEMPRE validar sintaxe YAML/JSON antes de marcar como completo"
+        - "📖 SEMPRE citar ou linkar para arquivos/linhas relevantes ao explicar comportamento de código"
+        - "📖 Usar templates em docs/templates/ como ponto de partida para novos artefatos"
+      memory_and_context:
+        - "🧠 SEMPRE verificar memória persistente (memory/) e docs/SESSIONS/ antes de iniciar trabalho maior"
+        - "🧠 ATUALIZAR memória ao descobrir padrões importantes, workarounds ou lições aprendidas"
+        - "🧠 NUNCA assumir conhecimento de sessões anteriores — extrair contexto de arquivos de memória"
+        - "🧠 Para tarefas recorrentes, documentar abordagem na memória para referência futura"
+
+    documentation_and_context_structure:
+      bug_reporting:
+        path: "docs/bugs/"
+        description: "Repositório centralizado de bug reports — todo erro deve gerar um bug-report.md"
+        rule: "🐛 TODO erro encontrado (runtime, configuração, análise) deve ser documentado em docs/bugs/ como bug-report-YYYYMMDD-HHmm.md"
+        fields:
+          - "Descrição do erro e sintomas"
+          - "Stack trace completo"
+          - "Passos para reprodução"
+          - "Workaround temporário (se houver)"
+          - "Análise de causa raiz (quando identificada)"
+          - "Status: OPEN | IN_PROGRESS | RESOLVED"
+      templates:
+        path: "docs/templates/"
+        files:
+          - "objetivo-manifest-template.yaml: Template para manifestos de projeto"
+          - "DAILY_ACTIVITIES.template.md: Template para logs de atividades de sessão"
+          - "bug-report.template.md: Template para relatórios de bugs"
+          - "adr.template.md: Template para Architecture Decision Records"
+      reference:
+        path: "docs/reference/"
+        files:
+          - "SESSION_START_PROMPT_RESUMO.md: Checklist de inicialização de sessão"
+          - "SESSION_END_PROMPT_RESUMO.md: Checklist de encerramento de sessão"
+          - "SESSION_MANAGER_RESUMO.md: Referência do agente session-manager"
+          - "PORTFOLIO_SCHEMA.md: Documentação do schema JSON do portfólio"
+      guides:
+        path: "docs/guides/"
+        files:
+          - "SESSION_DOCS_STYLE_GUIDE.md: Padrões para documentação de sessão"
+          - "SECURITY_SESSION_DOCS.md: Boas práticas de segurança em documentação"
+          - "MCP_SETUP_GUIDE.md: Configuração de servidores MCP"
+          - "ISSUE_MANAGEMENT_GUIDE.md: Workflow para gestão de issues GitHub"
 
     profile:
-      - role: "python-developer"
-        skill_level: "advanced"
-        description: "Desenvolvedor Python experiente com foco em CLI tools e automação"
-      - role: "data-analyst"
-        skill_level: "intermediate"
-        description: "Análise de dados com Pandas para processamento de metadados"
-      - role: "cli-tool-developer"
-        skill_level: "intermediate"
-        description: "Desenvolvimento de ferramentas CLI com click e rich"
-      - role: "copilot-assisted-developer"
-        skill_level: "advanced"
-        description: "Uso avançado de GitHub Copilot para acelerar desenvolvimento"
+      role: "python-developer-devops"
+      experience_level: "advanced"
+      expertise_by_domain:
+        - domain: "Python"
+          level: "advanced"
+          focus: "automação, CLI tools (click), processamento de arquivos, testing (pytest), módulos por responsabilidade"
+        - domain: "Linux/DevOps"
+          level: "advanced"
+          focus: "administração de sistemas, shell scripting, Docker, Kubernetes, Terraform, pipelines CI/CD"
+        - domain: "Análise de Dados"
+          level: "intermediate"
+          focus: "Pandas para processamento de metadados, métricas de código, análise de repositórios"
+        - domain: "AI/LLM"
+          level: "intermediate"
+          focus: "integração via API Anthropic, prompt engineering, uso estratégico de IA em automação"
+        - domain: "Qualidade de Software"
+          level: "advanced"
+          focus: "testing (pytest), linting (ruff, pylint), type checking (mypy), pre-commit hooks, cobertura 90%+"
+      core_objectives:
+        - "Automatizar a geração de portfólio técnico profissional a partir de repositórios existentes"
+        - "Construir ferramenta robusta e reutilizável para auditoria de projetos DevOps"
+        - "Demonstrar boas práticas de engenharia Python (SOLID, modularidade, qualidade)"
+      constraints:
+        - "Processar apenas /home/yves_marinho/Documentos/DevOps/ — nunca outros diretórios"
+        - "Respeitar limites de CPU/RAM (análise de 1-10 GB sem travar o sistema)"
+        - "Sem credenciais no código — tudo em .secrets/*.json"
+        - "OS: Linux Mint 22.3 — ferramentas nativas, sem WSL"
+      tool_preferences:
+        - "uv para gestão de ambiente Python (não pip diretamente)"
+        - "Click para CLI, Rich para UX, Loguru para logs"
+        - "GitPython para metadados Git; tree-sitter para análise de código"
+        - "Python requests para HTTP (nunca curl com credenciais)"
+        - "Claude Code (Claude claude-sonnet-4-6) para assistência no desenvolvimento"
+      work_style:
+        - "Specification-Driven Development (SDD): spec → plan → tasks → implement"
+        - "Commits atômicos com mensagens detalhadas em português"
+        - "Rastreamento por sessão: docs/SESSIONS/YYYY-MM-DD/ com timestamps e decisões"
+        - "Validação contínua: testes, linting e security checks em cada etapa"
+
     features_to_implement:
       mvp:
         - name: "Scanner de Diretórios"
-          description: "Varredura recursiva com filtros e exclusões (.git, node_modules)"
-          criterio_sucesso: "Escanear 100+ projetos em < 30 segundos"
+          description: "Varredura recursiva com filtros e exclusões configuráveis via arquivo JSON (config/scan-exclusions.json). Padrão inclui .git, node_modules, __pycache__, .venv, tmp. Usuário pode adicionar ou remover entradas sem alterar código."
+          criterio_sucesso: "Escanear 100+ projetos em < 30 segundos com uso de RAM < 512 MB"
+          modulo: "src/scanner/"
+          exclusions_config: "config/scan-exclusions.json"
         - name: "Extrator de Metadados"
-          description: "Coleta dados estruturados (linguagens, deps, git info)"
-          criterio_sucesso: "Processar 1 projeto em < 2 segundos"
-        - name: "Analisador de Arquivos README"
-          description: "Parser de README.md para extrair descrições"
+          description: "Coleta dados estruturados: linguagens, dependências, git info, contagem de arquivos, datas"
+          criterio_sucesso: "Processar 1 projeto em < 2 segundos com todos os metadados"
+          modulo: "src/extractor/"
+        - name: "Analisador de README"
+          description: "Parser de README.md para extrair descrição, tecnologias mencionadas e status do projeto"
           criterio_sucesso: "90%+ dos projetos com README obtêm descrição válida"
+          modulo: "src/analyzer/"
         - name: "Gerador de JSON"
-          description: "Exporta portfólio em schema definido com validação"
-          criterio_sucesso: "JSON válido, arquivo < 5 MB para 100 projetos"
+          description: "Exporta portfólio em schema validado (portfolio-schema-v1.json)"
+          criterio_sucesso: "JSON válido, < 5 MB para 100 projetos, schema compliance 100%"
+          modulo: "src/generator/"
         - name: "CLI Interativo"
-          description: "Interface com progress bars, verbose/quiet, seleção de pastas"
-          criterio_sucesso: "UX fluida, erros claros, help completo"
+          description: "Interface click com progress bars (rich), verbose/quiet mode, seleção de pastas, help completo"
+          criterio_sucesso: "UX fluida, erros claros, help completo, --dry-run disponível"
+          modulo: "src/cli/"
       secundarias:
-        - "Análise de Qualidade de Código - Métricas de complexidade, duplicação, coverage"
-        - "Geração de Relatório HTML - Dashboard visual do portfólio"
-        - "Comparação Temporal - Rastrear evolução dos projetos ao longo do tempo"
-        - "Exportação Multi-formato - Markdown, HTML, CSV além de JSON"
-        - "Detecção de Padrões Arquiteturais - Identificar MVC, microservices, monolith"
-      integracoes: "N/A"
+        - "Integração IA (opcional): Claude claude-sonnet-4-6 para resumos automáticos quando README ausente/extenso"
+        - "Análise de Qualidade de Código: métricas de complexidade ciclomática, duplicação, cobertura estimada"
+        - "Geração de Relatório HTML: dashboard visual do portfólio (template Jinja2)"
+        - "Comparação Temporal: rastrear evolução dos projetos ao longo do tempo via git history"
+        - "Exportação Multi-formato: Markdown, HTML, CSV além de JSON"
+        - "Detecção de Padrões Arquiteturais: identificar MVC, microservices, monolith, CLI tool"
 
     pending_tasks:
-      - task: "Configurar ambiente virtual Python"
-        status: "completed"
-        prioridade: 0
-        nota: ".venv criado"
-      - task: "Definir schema JSON para portfólio"
-        status: "completed"
-        prioridade: 0
-        nota: "schemas/portfolio-schema-v1.json criado"
-      - task: "Criar estrutura de pastas src/"
-        status: "pending"
-        prioridade: 1
-      - task: "Instalar dependências (pandas, click, rich, loguru, gitpython, etc.)"
-        status: "pending"
-        prioridade: 2
-      - task: "Criar módulo scanner de diretórios"
-        status: "pending"
-        prioridade: 3
-      - task: "Criar módulo extrator de metadados"
-        status: "pending"
-        prioridade: 4
-      - task: "Criar módulo analisador de README"
-        status: "pending"
-        prioridade: 5
-      - task: "Criar módulo gerador de JSON"
-        status: "pending"
-        prioridade: 6
-      - task: "Criar CLI principal"
-        status: "pending"
-        prioridade: 7
-      - task: "Definir testes unitários"
-        status: "pending"
-        prioridade: 8
-      - task: "Documentar casos de uso e exemplos"
-        status: "pending"
-        prioridade: 9
+      phase_1_setup:
+        - "[x] Configurar ambiente virtual Python (uv sync)"
+        - "[ ] Definir schema JSON para portfólio (schemas/portfolio-schema-v1.json)"
+        - "[ ] Configurar pyproject.toml (black, ruff, mypy, pytest)"
+        - "[ ] Configurar pre-commit hooks (black, ruff, mypy, bandit)"
+        - "[ ] Criar Makefile com targets: setup, test, lint, run, clean"
+      phase_2_core_modules:
+        - "[ ] Criar estrutura de pastas src/ (scanner/, extractor/, analyzer/, generator/, cli/)"
+        - "[ ] Instalar dependências (pandas, click, rich, loguru, gitpython, tree-sitter, pygments)"
+        - "[ ] Criar módulo scanner de diretórios (src/scanner/)"
+        - "[ ] Criar módulo extrator de metadados (src/extractor/)"
+        - "[ ] Criar módulo analisador de README (src/analyzer/)"
+        - "[ ] Criar módulo gerador de JSON (src/generator/)"
+        - "[ ] Criar CLI principal (src/cli/) com click"
+      phase_3_quality:
+        - "[ ] Definir fixtures de teste (projetos mock em tests/fixtures/)"
+        - "[ ] Implementar testes unitários para cada módulo (90%+ cobertura)"
+        - "[ ] Implementar testes de integração (scan → extract → generate)"
+        - "[ ] Configurar pytest-cov e gerar relatório de cobertura"
+        - "[ ] Validar linting (ruff, pylint, mypy) sem violações"
+        - "[ ] Security scan (bandit, safety) sem falhas"
+      phase_4_documentation:
+        - "[ ] Escrever README.md completo com exemplos de uso"
+        - "[ ] Documentar schema JSON em docs/reference/PORTFOLIO_SCHEMA.md"
+        - "[ ] Criar ADRs para decisões arquiteturais principais"
+        - "[ ] Documentar casos de uso e exemplos em docs/"
+      phase_5_validation:
+        - "[ ] Teste de carga: escanear /home/yves_marinho/Documentos/DevOps/ completo"
+        - "[ ] Validar JSON gerado contra schema (100% compliance)"
+        - "[ ] Verificar uso de CPU/RAM dentro dos limites definidos"
+        - "[ ] Demo: portfolio de enterprise-python-snippets"
+        - "[ ] Revisão final e release v1.0.0"
+
+    workflow_detalhado:
+      scan_phase:
+        - "Receber diretório raiz como argumento CLI (--path, default: /home/.../DevOps/)"
+        - "Validar que path está dentro do escopo permitido"
+        - "Listar subdiretórios de nível 1 (cada um = 1 projeto)"
+        - "Carregar lista de exclusões de config/scan-exclusions.json (fallback para lista padrão embutida se arquivo não existir)"
+        - "Filtrar: excluir pastas definidas em scan-exclusions.json (padrão: .git, node_modules, __pycache__, .venv, tmp)"
+        - "Suportar flag --exclusions-file <path> no CLI para apontar arquivo JSON alternativo"
+        - "Contabilizar arquivos por extensão para detectar linguagem principal"
+      sanitize_phase:
+        - "Verificar encoding dos arquivos principais (chardet)"
+        - "Ignorar arquivos binários, imagens, compilados"
+        - "Normalizar paths para análise consistente"
+        - "Verificar se projeto tem git inicializado (GitPython)"
+      identify_phase:
+        - "Detectar linguagem principal por contagem de extensões"
+        - "Detectar framework por arquivos característicos (pyproject.toml, package.json, go.mod, etc.)"
+        - "Extrair metadata Git: branch, último commit, data, autor, contagem de commits"
+        - "Verificar existência e tamanho de README.md"
+      aggregate_phase:
+        - "Montar dicionário de metadados por projeto"
+        - "Calcular métricas: total de arquivos, linhas de código (estimado), tamanho em disco"
+        - "Extrair descrição: README.md se < threshold, ou IA se ausente/extenso"
+        - "Validar dados contra schema parcial"
+      synthesize_phase:
+        - "Serializar lista de projetos em JSON (portfolio-schema-v1.json)"
+        - "Validar JSON gerado com jsonschema"
+        - "Gerar relatório de execução (projetos processados, erros, tempo total)"
+      organize_phase:
+        - "Salvar JSON em output/ com timestamp: portfolio-YYYY-MM-DD.json"
+        - "Salvar relatório em logs/scan-YYYY-MM-DD.log"
+        - "Exibir sumário via Rich (tabela com top projetos)"
+      cli_phase:
+        - "portfolio-gen scan --path /path --output portfolio.json --verbose"
+        - "portfolio-gen validate --file portfolio.json"
+        - "portfolio-gen report --file portfolio.json --format html"
+        - "portfolio-gen --help (documentação completa de todos os subcomandos)"

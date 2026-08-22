@@ -40,8 +40,9 @@ from pathlib import Path
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from scripts.lib.sanitize import detect_secrets, get_security_report, sanitize
+
 from scripts.lib.memory import Memory, MemoryStore
-from scripts.lib.sanitize import detect_secrets, sanitize, get_security_report
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 log = logging.getLogger(__name__)
@@ -264,10 +265,7 @@ def main():
             # Extract body (skip frontmatter)
             if existing_content.startswith("---"):
                 parts = existing_content.split("---", 2)
-                if len(parts) >= 3:
-                    existing_body = parts[2].strip()
-                else:
-                    existing_body = existing_content
+                existing_body = parts[2].strip() if len(parts) >= 3 else existing_content
             else:
                 existing_body = existing_content
 

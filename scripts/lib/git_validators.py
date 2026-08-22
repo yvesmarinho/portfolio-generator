@@ -1,6 +1,5 @@
 """Git branch name validators."""
 import re
-from typing import List
 from dataclasses import dataclass
 
 
@@ -9,8 +8,8 @@ class ValidationResult:
     """Result of branch name validation."""
     is_valid: bool
     branch: str
-    errors: List[str]
-    warnings: List[str] = None
+    errors: list[str]
+    warnings: list[str] = None
 
     def __post_init__(self):
         if self.warnings is None:

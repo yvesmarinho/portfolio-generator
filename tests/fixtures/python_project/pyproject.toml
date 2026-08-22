@@ -1,0 +1,4 @@
+[project]
+name = "python-test-project"
+version = "0.1.0"
+dependencies = ["click>=8.0", "requests>=2.28"]
